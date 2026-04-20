@@ -1,5 +1,5 @@
 export type AuditStatus = "pending" | "crawling" | "analyzing" | "completed" | "failed";
-export type Severity = "critical" | "warning" | "info";
+export type Severity = "critical" | "error" | "warning" | "info";
 export type CWVRating = "good" | "needs-improvement" | "poor";
 
 export interface Audit {

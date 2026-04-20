@@ -10,6 +10,7 @@ import type { SEOIssue, Severity } from "@/types/audit";
 
 const SEVERITY_CONFIG: Record<Severity, { icon: typeof AlertCircle; color: string; border: string; label: string; variant: "destructive" | "warning" | "outline" }> = {
   critical: { icon: AlertCircle, color: "text-red-600", border: "border-l-red-500", label: "Critical", variant: "destructive" },
+  error: { icon: AlertCircle, color: "text-red-600", border: "border-l-red-500", label: "Critical", variant: "destructive" },
   warning: { icon: AlertTriangle, color: "text-amber-600", border: "border-l-amber-500", label: "Warning", variant: "warning" },
   info: { icon: Info, color: "text-blue-500", border: "border-l-blue-400", label: "Info", variant: "outline" },
 };
@@ -26,6 +27,7 @@ export function IssueTable({ issues }: IssueTableProps) {
 
   const filtered = useMemo(() => {
     if (filter === "all") return issues;
+    if (filter === "critical") return issues.filter((i) => i.severity === "critical" || i.severity === "error");
     return issues.filter((i) => i.severity === filter);
   }, [issues, filter]);
 
@@ -33,7 +35,7 @@ export function IssueTable({ issues }: IssueTableProps) {
   const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   const counts = useMemo(() => ({
-    critical: issues.filter((i) => i.severity === "critical").length,
+    critical: issues.filter((i) => i.severity === "critical" || i.severity === "error").length,
     warning: issues.filter((i) => i.severity === "warning").length,
     info: issues.filter((i) => i.severity === "info").length,
   }), [issues]);

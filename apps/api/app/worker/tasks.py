@@ -157,7 +157,7 @@ async def _run_audit_pipeline(audit_id: str, url: str, max_pages: int) -> None:
     )
 
 
-@celery_app.task(bind=True, name="run_audit")
+@celery_app.task(bind=True, name="run_audit", soft_time_limit=900, time_limit=960)
 def run_audit(self, audit_id: str) -> dict:
     """Main audit task: crawl → analyze → score.
 

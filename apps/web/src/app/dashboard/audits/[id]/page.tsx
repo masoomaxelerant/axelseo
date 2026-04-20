@@ -1,20 +1,22 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Download, RefreshCw, Globe, Calendar, FileText } from "lucide-react";
+import { ArrowLeft, Download, RefreshCw, Trash2, StopCircle, Globe, Calendar, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { ScoreGauge } from "@/components/audit/score-gauge";
+import { ScoreBreakdown } from "@/components/audit/score-breakdown";
 import { CoreWebVitalsCard } from "@/components/audit/core-web-vitals-card";
 import { IssueTable } from "@/components/audit/issue-table";
 import { SiteStructureCard } from "@/components/audit/site-structure-card";
 import { AuditProgressBar } from "@/components/audit/audit-progress-bar";
+import { CrawlLog } from "@/components/audit/crawl-log";
 import { TrendChart } from "@/components/charts/trend-chart";
 import { AuditKeywordsSection } from "@/components/gsc/audit-keywords-section";
-import { useAudit } from "@/hooks/use-audits";
+import { useAudit, useRetryAudit, useDeleteAudit, useCancelAudit, useExportPdf } from "@/hooks/use-audits";
 import { MOCK_SCORE_HISTORY } from "@/lib/mock-data";
 
 export default function AuditDetailPage() {
@@ -63,14 +65,7 @@ export default function AuditDetailPage() {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled={isInProgress}>
-            <RefreshCw className="mr-2 h-3 w-3" /> Run Again
-          </Button>
-          <Button size="sm" disabled={isInProgress || audit.status === "failed"}>
-            <Download className="mr-2 h-3 w-3" /> Export PDF
-          </Button>
-        </div>
+        <AuditActions auditId={auditId} status={audit.status} isInProgress={isInProgress} />
       </div>
 
       {/* In-progress state */}
@@ -82,14 +77,26 @@ export default function AuditDetailPage() {
         />
       )}
 
+      {/* Crawl log — shown during crawling/analyzing */}
+      {isInProgress && (
+        <CrawlLog
+          auditId={auditId}
+          status={audit.status}
+          statusMessage={audit.status_message}
+          pagesCrawled={audit.pages_crawled}
+          maxPages={audit.max_pages}
+        />
+      )}
+
       {/* Failed state */}
       {audit.status === "failed" && (
-        <AuditProgressBar status="failed" statusMessage={audit.status_message} />
+        <FailedAuditCard auditId={auditId} statusMessage={audit.status_message} />
       )}
 
       {/* Score gauges — only for completed audits */}
       {audit.status === "completed" && (
         <>
+          {/* Overview scores */}
           <Card>
             <CardContent className="py-6">
               <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
@@ -119,8 +126,47 @@ export default function AuditDetailPage() {
             )}
           </div>
 
-          {/* Issues */}
+          {/* Detailed score breakdowns — like PageSpeed Insights */}
           {"issues" in audit && audit.issues && (
+            <div className="space-y-6">
+              <h2 className="font-display text-lg font-bold text-foreground">Detailed Analysis</h2>
+
+              <ScoreBreakdown
+                score={audit.score_seo}
+                label="SEO"
+                sectionKey="seo"
+                issues={audit.issues}
+                description="These checks ensure that your page is following basic search engine optimization advice."
+              />
+
+              <ScoreBreakdown
+                score={audit.score_performance}
+                label="Performance"
+                sectionKey="performance"
+                issues={audit.issues}
+                description="These metrics measure page load speed, visual stability, and resource optimization."
+              />
+
+              <ScoreBreakdown
+                score={audit.score_accessibility}
+                label="Accessibility"
+                sectionKey="accessibility"
+                issues={audit.issues}
+                description="These checks highlight opportunities to improve the accessibility of your web app for all users."
+              />
+
+              <ScoreBreakdown
+                score={audit.score_best_practices}
+                label="Best Practices"
+                sectionKey="best_practices"
+                issues={audit.issues}
+                description="These checks ensure your page follows web development best practices."
+              />
+            </div>
+          )}
+
+          {/* All issues table */}
+          {"issues" in audit && audit.issues && audit.issues.length > 0 && (
             <IssueTable issues={audit.issues} />
           )}
 
@@ -132,6 +178,114 @@ export default function AuditDetailPage() {
         </>
       )}
     </div>
+  );
+}
+
+function AuditActions({ auditId, status, isInProgress }: { auditId: string; status: string; isInProgress: boolean }) {
+  const router = useRouter();
+  const retryAudit = useRetryAudit();
+  const deleteAudit = useDeleteAudit();
+  const cancelAudit = useCancelAudit();
+  const exportPdf = useExportPdf(auditId);
+
+  return (
+    <div className="flex items-center gap-2">
+      {/* Cancel — for in-progress audits */}
+      {isInProgress && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => cancelAudit.mutate(auditId)}
+          disabled={cancelAudit.isPending}
+          className="border-amber-300 text-amber-600 hover:bg-amber-50"
+        >
+          <StopCircle className="mr-2 h-3 w-3" />
+          {cancelAudit.isPending ? "Cancelling..." : "Cancel"}
+        </Button>
+      )}
+      {/* Retry — for failed/completed */}
+      {(status === "failed" || status === "completed") && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => retryAudit.mutate(auditId)}
+          disabled={retryAudit.isPending}
+        >
+          <RefreshCw className={`mr-2 h-3 w-3 ${retryAudit.isPending ? "animate-spin" : ""}`} />
+          {retryAudit.isPending ? "Retrying..." : "Retry"}
+        </Button>
+      )}
+      {/* Export PDF — for completed */}
+      {status === "completed" && (
+        <Button size="sm" onClick={() => exportPdf.mutate()} disabled={exportPdf.isPending}>
+          {exportPdf.isPending ? (
+            <><RefreshCw className="mr-2 h-3 w-3 animate-spin" /> Generating...</>
+          ) : (
+            <><Download className="mr-2 h-3 w-3" /> Export PDF</>
+          )}
+        </Button>
+      )}
+      {/* Delete — always */}
+      <Button
+        variant="ghost"
+        size="sm"
+        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+        onClick={() => {
+          if (confirm("Delete this audit?")) {
+            deleteAudit.mutate(auditId, {
+              onSuccess: () => router.push("/dashboard/audits"),
+            });
+          }
+        }}
+        disabled={deleteAudit.isPending}
+      >
+        <Trash2 className="h-3 w-3" />
+      </Button>
+    </div>
+  );
+}
+
+function FailedAuditCard({ auditId, statusMessage }: { auditId: string; statusMessage: string | null }) {
+  const router = useRouter();
+  const retryAudit = useRetryAudit();
+  const deleteAudit = useDeleteAudit();
+
+  return (
+    <Card className="border-red-200">
+      <CardContent className="flex flex-col items-center py-10">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-50 mb-4">
+          <span className="text-2xl">!</span>
+        </div>
+        <p className="font-display font-semibold text-red-700">Audit Failed</p>
+        {statusMessage && (
+          <p className="text-sm text-red-500 mt-1 text-center max-w-md">{statusMessage}</p>
+        )}
+        <div className="flex items-center gap-3 mt-6">
+          <Button
+            onClick={() => retryAudit.mutate(auditId)}
+            disabled={retryAudit.isPending}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${retryAudit.isPending ? "animate-spin" : ""}`} />
+            {retryAudit.isPending ? "Retrying..." : "Retry Audit"}
+          </Button>
+          <Button
+            variant="outline"
+            className="text-red-500 border-red-200 hover:bg-red-50"
+            onClick={() => {
+              if (confirm("Delete this audit?")) {
+                deleteAudit.mutate(auditId, {
+                  onSuccess: () => router.push("/dashboard/audits"),
+                });
+              }
+            }}
+            disabled={deleteAudit.isPending}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
