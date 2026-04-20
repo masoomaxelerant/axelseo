@@ -1,0 +1,43 @@
+[project]
+name = "axelseo-crawler"
+version = "0.1.0"
+description = "Production web crawler for AxelSEO — Playwright-based async crawler with SEO data extraction"
+requires-python = ">=3.11"
+dependencies = [
+    "playwright>=1.49.0",
+    "pydantic>=2.10.0",
+    "httpx>=0.28.0",
+    "beautifulsoup4>=4.12.3",
+    "lxml>=5.3.0",
+    "structlog>=24.4.0",
+    "redis>=5.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.25.0",
+    "respx>=0.22.0",
+    "httpx>=0.28.0",
+    "ruff>=0.9.0",
+]
+
+[project.scripts]
+axelseo-crawl = "axelseo_crawler.cli:main"
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

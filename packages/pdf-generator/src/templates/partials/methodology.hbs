@@ -1,0 +1,55 @@
+{{!-- Methodology --}}
+<div class="page">
+  {{> page-header title="Methodology"}}
+
+  <h2>How We Audit</h2>
+  <p class="summary-text" style="margin-bottom: 20px;">
+    Our audit uses a multi-layered approach combining automated crawling with manual analysis
+    to provide a complete picture of your site's SEO health.
+  </p>
+
+  <div class="method-grid">
+    <div class="method-card">
+      <div class="method-num">1</div>
+      <h4>Site Crawling</h4>
+      <p>We crawl your site using a headless browser that renders JavaScript, following every internal
+      link up to {{audit.maxPages}} pages. We respect robots.txt and rate-limit our requests.</p>
+    </div>
+    <div class="method-card">
+      <div class="method-num">2</div>
+      <h4>Lighthouse Analysis</h4>
+      <p>We run Google Lighthouse on sampled pages to measure Performance, Accessibility, Best Practices,
+      and SEO scores. Core Web Vitals (LCP, INP, CLS) are extracted from each run.</p>
+    </div>
+    <div class="method-card">
+      <div class="method-num">3</div>
+      <h4>On-Page SEO</h4>
+      <p>Every page is analyzed for title tags, meta descriptions, heading structure, image optimization,
+      canonical URLs, structured data, and social meta tags.</p>
+    </div>
+    <div class="method-card">
+      <div class="method-num">4</div>
+      <h4>Issue Detection</h4>
+      <p>25 automated detectors identify critical, warning, and informational issues. Cross-page analysis
+      catches duplicates, orphan pages, and redirect chains.</p>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <h3>Confidence &amp; Limitations</h3>
+  <div class="summary-text">
+    <p>
+      This audit represents a point-in-time snapshot. Scores may vary slightly between runs due to
+      server response times and third-party resource loading. Lighthouse scores are measured in a
+      simulated mobile environment on a mid-tier device with throttled CPU and network.
+    </p>
+    <p>
+      The crawl covered <strong>{{formatNumber audit.pagesCrawled}}</strong> of an estimated
+      {{formatNumber audit.maxPages}} discoverable pages. Pages behind authentication or generated
+      dynamically based on user input are not included.
+    </p>
+  </div>
+
+  {{> page-footer pageNum="3"}}
+</div>

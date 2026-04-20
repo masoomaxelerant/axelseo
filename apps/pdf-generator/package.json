@@ -1,0 +1,17 @@
+{
+  "name": "@axelseo/pdf-generator",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "generate": "ts-node src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "puppeteer": "^24.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.0"
+  }
+}

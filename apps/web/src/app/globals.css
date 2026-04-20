@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Axelerant brand → shadcn CSS variables */
+    --background: 0 0% 100%;
+    --foreground: 210 40% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 40% 8%;
+    --primary: 22 100% 50%;          /* #FF5C00 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 60% 11%;        /* #0D1B2A */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 15% 96%;
+    --muted-foreground: 218 11% 45%; /* #6B7280 */
+    --accent: 210 15% 96%;
+    --accent-foreground: 210 40% 8%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 18% 90%;
+    --input: 210 18% 90%;
+    --ring: 22 100% 50%;
+    --radius: 0.375rem;              /* 6px border-radius */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  /* Ensure generous whitespace in content areas */
+  main {
+    @apply p-6 lg:p-8;
+  }
+}

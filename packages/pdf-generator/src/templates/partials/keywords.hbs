@@ -1,0 +1,67 @@
+{{!-- Keyword Performance (GSC data) --}}
+{{#if audit.keywords}}
+<div class="page">
+  {{> page-header title="Keyword Performance"}}
+
+  <h2>Top Keywords</h2>
+  <p class="summary-text" style="margin-bottom: 16px;">
+    Data from Google Search Console showing your top-performing keywords.
+  </p>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width: 35%">Keyword</th>
+        <th>Position</th>
+        <th>Impressions</th>
+        <th>Clicks</th>
+        <th>CTR</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each (take audit.keywords 20)}}
+      <tr>
+        <td>{{this.keyword}}</td>
+        <td class="score-cell" style="color: {{#if (lt this.position 4)}}var(--green){{else if (lt this.position 11)}}var(--amber){{else}}var(--red){{/if}}">
+          {{this.position}}
+        </td>
+        <td>{{formatNumber this.impressions}}</td>
+        <td>{{formatNumber this.clicks}}</td>
+        <td>{{formatPercent this.ctr}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  {{!-- Opportunity keywords --}}
+  {{#if opportunityKeywords}}
+  <div class="section-divider"></div>
+  <h3>Opportunity Keywords (Positions 11–20)</h3>
+  <p class="summary-text" style="margin-bottom: 12px;">
+    These keywords are on page 2 of search results — a small push could move them to page 1.
+  </p>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width: 40%">Keyword</th>
+        <th>Position</th>
+        <th>Impressions</th>
+        <th>Potential Clicks</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each opportunityKeywords}}
+      <tr>
+        <td>{{this.keyword}}</td>
+        <td class="score-cell" style="color: var(--amber)">{{this.position}}</td>
+        <td>{{formatNumber this.impressions}}</td>
+        <td style="color: var(--green)">~{{formatNumber this.potentialClicks}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
+
+  {{> page-footer pageNum="9"}}
+</div>
+{{/if}}

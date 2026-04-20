@@ -1,0 +1,30 @@
+{{!-- Back Cover --}}
+<div class="page back-cover">
+  <div class="back-cover-inner">
+    {{#unless options.whitelabel}}
+    <div style="margin-bottom: 40px;">
+      <span style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 28pt;">
+        <span style="color: #FF5C00;">Axel</span><span style="color: white;">SEO</span>
+      </span>
+    </div>
+    {{/unless}}
+
+    <h2>Ready to implement?</h2>
+    <p class="cta">Let&rsquo;s talk.</p>
+
+    <div class="contact-card">
+      <div class="name">{{consultant.name}}</div>
+      {{#if consultant.title}}
+      <div class="role">{{consultant.title}}</div>
+      {{/if}}
+      <div class="email">{{consultant.email}}</div>
+    </div>
+
+    {{#unless options.whitelabel}}
+    <div class="brand-footer">
+      &copy; {{currentYear}} Axelerant Digital &mdash; axelerant.com<br>
+      Merging Human Creativity With AI
+    </div>
+    {{/unless}}
+  </div>
+</div>

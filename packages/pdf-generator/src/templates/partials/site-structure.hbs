@@ -1,0 +1,69 @@
+{{!-- Site Structure --}}
+<div class="page">
+  {{> page-header title="Site Structure"}}
+
+  <h2>Crawl Summary</h2>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-value" style="color: var(--orange)">{{formatNumber audit.siteStructure.totalPages}}</div>
+      <div class="stat-label">Pages Crawled</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{audit.siteStructure.maxDepth}}</div>
+      <div class="stat-label">Max Depth</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color: {{#if (gt audit.siteStructure.brokenLinks 0)}}var(--red){{else}}var(--green){{/if}}">
+        {{audit.siteStructure.brokenLinks}}
+      </div>
+      <div class="stat-label">Broken Links</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color: {{#if (gt audit.siteStructure.redirectChains 0)}}var(--amber){{else}}var(--green){{/if}}">
+        {{audit.siteStructure.redirectChains}}
+      </div>
+      <div class="stat-label">Redirect Chains</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color: {{#if (gt audit.siteStructure.orphanPages 0)}}var(--amber){{else}}var(--green){{/if}}">
+        {{audit.siteStructure.orphanPages}}
+      </div>
+      <div class="stat-label">Orphan Pages</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{formatMs audit.siteStructure.avgLoadTimeMs}}</div>
+      <div class="stat-label">Avg Load Time</div>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <h3>What This Means</h3>
+  <div class="summary-text">
+    <p>
+      Your site has a crawl depth of {{audit.siteStructure.maxDepth}} levels.
+      {{#if (gt audit.siteStructure.maxDepth 4)}}
+      Pages deeper than 3 clicks from the homepage receive less link equity and are harder
+      for search engines to discover. Consider flattening your site architecture.
+      {{else}}
+      This is a healthy depth that allows search engines to easily discover all your content.
+      {{/if}}
+    </p>
+    {{#if (gt audit.siteStructure.brokenLinks 0)}}
+    <p>
+      <strong style="color: var(--red)">{{audit.siteStructure.brokenLinks}} broken links</strong>
+      were detected. These create poor user experiences and waste crawl budget.
+      Fix or remove these links as a priority.
+    </p>
+    {{/if}}
+    {{#if (gt audit.siteStructure.orphanPages 0)}}
+    <p>
+      <strong>{{audit.siteStructure.orphanPages}} orphan pages</strong> have no internal links
+      pointing to them. Search engines may struggle to discover these pages. Add contextual
+      internal links from relevant content.
+    </p>
+    {{/if}}
+  </div>
+
+  {{> page-footer pageNum="8"}}
+</div>

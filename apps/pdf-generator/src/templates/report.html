@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', 'Helvetica Neue', sans-serif; color: #0D1B2A; }
+
+    .header {
+      background: #0D1B2A;
+      color: white;
+      padding: 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; }
+    .header h1 span { color: #FF5C00; }
+    .header .meta { font-size: 12px; color: #9CA3AF; }
+
+    .scores {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      padding: 40px;
+    }
+    .score-card {
+      text-align: center;
+      padding: 24px;
+      border: 1px solid #E5E7EB;
+      border-radius: 12px;
+    }
+    .score-card .value {
+      font-size: 48px;
+      font-weight: 700;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .score-card .label { font-size: 14px; color: #6B7280; margin-top: 8px; }
+
+    .section { padding: 20px 40px; }
+    .section h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #0D1B2A;
+      border-bottom: 2px solid #FF5C00;
+      padding-bottom: 8px;
+    }
+
+    .footer {
+      margin-top: 40px;
+      padding: 20px 40px;
+      background: #F9FAFB;
+      text-align: center;
+      font-size: 12px;
+      color: #9CA3AF;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>Axel<span>SEO</span> Report</h1>
+      <p style="margin-top: 8px; font-size: 14px;">{{url}}</p>
+    </div>
+    <div class="meta">
+      <p>Generated: {{date}}</p>
+      <p>Pages crawled: {{pagesCrawled}}</p>
+    </div>
+  </div>
+
+  <div class="scores">
+    <div class="score-card">
+      <div class="value" style="color: #FF5C00;">{{seoScore}}</div>
+      <div class="label">SEO Score</div>
+    </div>
+    <div class="score-card">
+      <div class="value">{{performanceScore}}</div>
+      <div class="label">Performance</div>
+    </div>
+    <div class="score-card">
+      <div class="value">{{accessibilityScore}}</div>
+      <div class="label">Accessibility</div>
+    </div>
+    <div class="score-card">
+      <div class="value">{{bestPracticesScore}}</div>
+      <div class="label">Best Practices</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Audit Details</h2>
+    <p>Full audit results and issue breakdown will be rendered here.</p>
+  </div>
+
+  <div class="footer">
+    <p>Axelerant Digital &mdash; axelerant.com</p>
+  </div>
+</body>
+</html>

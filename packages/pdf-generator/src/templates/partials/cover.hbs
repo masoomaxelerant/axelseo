@@ -1,0 +1,22 @@
+{{!-- Cover Page --}}
+<div class="page cover">
+  {{#unless options.whitelabel}}
+  <div class="brand-logo"><span class="axel">Axel</span><span class="seo">SEO</span></div>
+  {{/unless}}
+  <div class="cover-inner">
+    <h1>SEO Audit<br><span class="accent">Report</span></h1>
+    <div class="cover-meta">
+      <p class="client-name">{{client.name}}</p>
+      <p class="domain">{{client.domain}}</p>
+      <p style="margin-top: 16px;">{{formatDate audit.auditDate}}</p>
+      <p>{{audit.pagesCrawled}} pages analyzed</p>
+    </div>
+  </div>
+  <div class="cover-accent"></div>
+  <div class="cover-accent-line"></div>
+  <div class="cover-footer">
+    {{#unless options.whitelabel}}
+    Prepared by Axelerant Digital &mdash; Merging Human Creativity With AI
+    {{/unless}}
+  </div>
+</div>

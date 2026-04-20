@@ -1,0 +1,24 @@
+{
+  "name": "axelseo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "AxelSEO — Internal SEO audit tool for Axelerant Digital",
+  "scripts": {
+    "start": "bash start.sh",
+    "dev": "pnpm --filter @axelseo/web dev",
+    "dev:api": "cd apps/api && .venv/bin/python -m uvicorn app.main:app --reload --port 8000",
+    "dev:worker": "cd apps/api && .venv/bin/celery -A app.worker.celery_app worker --loglevel=info",
+    "build": "pnpm --filter @axelseo/web build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm --filter @axelseo/web typecheck",
+    "test": "pnpm -r test",
+    "test:api": "cd apps/api && python -m pytest",
+    "db:migrate": "cd apps/api && alembic upgrade head",
+    "db:revision": "cd apps/api && alembic revision --autogenerate -m"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319"
+}

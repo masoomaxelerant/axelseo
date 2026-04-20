@@ -1,0 +1,74 @@
+{{!-- On-Page SEO Findings --}}
+<div class="page overflow-ok">
+  {{> page-header title="On-Page SEO Findings"}}
+
+  <h2>Issue Overview</h2>
+  <p class="summary-text" style="margin-bottom: 12px;">
+    We detected <strong>{{totalIssues}}</strong> issues across {{formatNumber audit.pagesCrawled}} pages.
+  </p>
+  {{{severityBar criticalCount warningCount infoCount}}}
+
+  <div class="section-divider"></div>
+
+  {{!-- Critical Issues --}}
+  {{#if criticalIssues}}
+  <div class="issue-group">
+    <div class="issue-group-header">
+      <div class="dot" style="background: var(--red)"></div>
+      <h3 style="color: var(--red)">Critical Issues</h3>
+      <span class="count">({{criticalCount}})</span>
+    </div>
+    {{#each criticalIssues}}
+    <div class="issue-card critical">
+      <div class="issue-title">{{this.message}}</div>
+      <div class="issue-fix">{{this.howToFix}}</div>
+      <div class="issue-pages">{{this.pagesAffected}} {{pluralize this.pagesAffected "page" "pages"}} affected</div>
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  {{!-- Warning Issues --}}
+  {{#if warningIssues}}
+  <div class="issue-group">
+    <div class="issue-group-header">
+      <div class="dot" style="background: var(--amber)"></div>
+      <h3 style="color: var(--amber)">Warnings</h3>
+      <span class="count">({{warningCount}})</span>
+    </div>
+    {{#each warningIssues}}
+    <div class="issue-card warning">
+      <div class="issue-title">{{this.message}}</div>
+      <div class="issue-fix">{{this.howToFix}}</div>
+      <div class="issue-pages">{{this.pagesAffected}} {{pluralize this.pagesAffected "page" "pages"}} affected</div>
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  {{> page-footer pageNum="6"}}
+</div>
+
+{{!-- Info issues on next page if they exist --}}
+{{#if infoIssues}}
+<div class="page">
+  {{> page-header title="On-Page SEO Findings (cont.)"}}
+
+  <div class="issue-group">
+    <div class="issue-group-header">
+      <div class="dot" style="background: var(--blue)"></div>
+      <h3 style="color: var(--blue)">Informational</h3>
+      <span class="count">({{infoCount}})</span>
+    </div>
+    {{#each infoIssues}}
+    <div class="issue-card info">
+      <div class="issue-title">{{this.message}}</div>
+      <div class="issue-fix">{{this.howToFix}}</div>
+      <div class="issue-pages">{{this.pagesAffected}} {{pluralize this.pagesAffected "page" "pages"}} affected</div>
+    </div>
+    {{/each}}
+  </div>
+
+  {{> page-footer pageNum="7"}}
+</div>
+{{/if}}

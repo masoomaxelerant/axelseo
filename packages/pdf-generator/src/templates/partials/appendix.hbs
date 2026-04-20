@@ -1,0 +1,53 @@
+{{!-- Appendix --}}
+{{#if options.includeAppendix}}
+<div class="page overflow-ok">
+  {{> page-header title="Appendix"}}
+
+  <h2>All Pages Crawled</h2>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width: 45%">URL</th>
+        <th>Status</th>
+        <th>Title</th>
+        <th>Load Time</th>
+        <th>Issues</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each audit.pages}}
+      <tr>
+        <td style="word-break: break-all; font-size: 8pt">{{this.url}}</td>
+        <td class="score-cell" style="color: {{#if (lt this.statusCode 400)}}var(--green){{else}}var(--red){{/if}}">
+          {{this.statusCode}}
+        </td>
+        <td style="font-size: 8pt">{{this.title}}</td>
+        <td>{{formatMs this.loadTimeMs}}</td>
+        <td>{{this.issues}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <div class="section-divider"></div>
+
+  <h2>Glossary</h2>
+  <table class="data-table">
+    <thead><tr><th>Term</th><th>Definition</th></tr></thead>
+    <tbody>
+      <tr><td><strong>LCP</strong></td><td>Largest Contentful Paint — time until the largest visible element loads</td></tr>
+      <tr><td><strong>INP</strong></td><td>Interaction to Next Paint — responsiveness to user input</td></tr>
+      <tr><td><strong>CLS</strong></td><td>Cumulative Layout Shift — visual stability during loading</td></tr>
+      <tr><td><strong>Canonical URL</strong></td><td>The preferred URL for a page, preventing duplicate content issues</td></tr>
+      <tr><td><strong>Schema.org</strong></td><td>Structured data that helps search engines understand your content</td></tr>
+      <tr><td><strong>Open Graph</strong></td><td>Meta tags that control how your page appears on social media</td></tr>
+      <tr><td><strong>301 Redirect</strong></td><td>A permanent redirect that passes SEO value to the new URL</td></tr>
+      <tr><td><strong>Orphan Page</strong></td><td>A page with no internal links pointing to it</td></tr>
+      <tr><td><strong>Alt Text</strong></td><td>Description added to images for accessibility and SEO</td></tr>
+      <tr><td><strong>H1 Tag</strong></td><td>The main heading of a page, critical for SEO</td></tr>
+    </tbody>
+  </table>
+
+  {{> page-footer pageNum="A"}}
+</div>
+{{/if}}

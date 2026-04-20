@@ -1,0 +1,45 @@
+{{!-- Executive Summary --}}
+<div class="page">
+  {{> page-header title="Executive Summary"}}
+
+  <h2>Scores at a Glance</h2>
+  <div class="scores-grid scores-grid-4">
+    {{{scoreGaugeLarge audit.scores.seo "SEO"}}}
+    {{{scoreGaugeLarge audit.scores.performance "Performance"}}}
+    {{{scoreGaugeLarge audit.scores.accessibility "Accessibility"}}}
+    {{{scoreGaugeLarge audit.scores.bestPractices "Best Practices"}}}
+  </div>
+
+  <div class="section-divider"></div>
+
+  <div class="summary-text">
+    <p>
+      We conducted a comprehensive SEO audit of <strong>{{client.domain}}</strong>,
+      analyzing <strong>{{formatNumber audit.pagesCrawled}}</strong> pages for technical SEO issues,
+      performance bottlenecks, and content optimization opportunities.
+    </p>
+    <p>
+      Your site achieved an overall SEO score of <strong style="color: {{scoreColor audit.scores.seo}}">{{round audit.scores.seo}}/100</strong>
+      ({{scoreLabel audit.scores.seo}}).
+      We identified <strong>{{criticalCount}}</strong> critical issues requiring immediate attention,
+      <strong>{{warningCount}}</strong> warnings, and
+      <strong>{{infoCount}}</strong> informational items.
+    </p>
+    <p>
+      Performance scored {{round audit.scores.performance}}/100 with a Largest Contentful Paint
+      of {{formatMs audit.coreWebVitals.lcp.value}}. Addressing the critical issues below will
+      have the most significant impact on your search visibility.
+    </p>
+  </div>
+
+  <div class="priority-box">
+    <h3>Top 3 Priorities</h3>
+    <ol>
+      {{#each topPriorities}}
+      <li><strong>{{this.category}}:</strong> {{this.message}} ({{this.pagesAffected}} {{pluralize this.pagesAffected "page" "pages"}})</li>
+      {{/each}}
+    </ol>
+  </div>
+
+  {{> page-footer pageNum="2"}}
+</div>

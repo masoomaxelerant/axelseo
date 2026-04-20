@@ -1,0 +1,33 @@
+{{!-- Recommendations --}}
+<div class="page">
+  {{> page-header title="Recommendations"}}
+
+  <h2>Prioritized Action Plan</h2>
+  <p class="summary-text" style="margin-bottom: 20px;">
+    Based on our findings, here are the recommended actions ordered by impact and effort.
+  </p>
+
+  {{!-- Quick Wins --}}
+  <div class="rec-section">
+    <span class="rec-badge quick">Quick Wins — Under 1 day</span>
+    {{#each quickWins}}
+    <div class="rec-item">
+      <h4>{{this.title}}</h4>
+      <p>{{this.description}}</p>
+    </div>
+    {{/each}}
+  </div>
+
+  {{!-- Strategic --}}
+  <div class="rec-section">
+    <span class="rec-badge strategic">Strategic — 1+ weeks</span>
+    {{#each strategicRecs}}
+    <div class="rec-item">
+      <h4>{{this.title}}</h4>
+      <p>{{this.description}}</p>
+    </div>
+    {{/each}}
+  </div>
+
+  {{> page-footer pageNum="10"}}
+</div>
