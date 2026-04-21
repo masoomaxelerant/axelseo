@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: axelseo-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+
+  - type: worker
+    name: axelseo-worker
+    runtime: docker
+    plan: free
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    dockerCommand: celery -A app.worker.celery_app worker --loglevel=info
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
