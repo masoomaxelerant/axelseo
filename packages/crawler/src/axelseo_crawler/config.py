@@ -9,12 +9,14 @@ class CrawlConfig(BaseModel):
     start_url: HttpUrl
     max_pages: int = 500
     max_depth: int = 5
-    requests_per_second: float = 2.0
+    requests_per_second: float = 5.0
+    concurrency: int = 3
     respect_robots_txt: bool = True
     same_origin_only: bool = True
-    page_timeout_ms: int = 30_000
-    max_retries: int = 3
-    take_screenshots: bool = True
+    page_timeout_ms: int = 15_000
+    max_retries: int = 2
+    block_resources: bool = True
+    take_screenshots: bool = False
     screenshot_width: int = 1280
     screenshot_height: int = 800
     user_agent: str = "AxelSEO/1.0 (+https://axelerant.com/seo-bot)"

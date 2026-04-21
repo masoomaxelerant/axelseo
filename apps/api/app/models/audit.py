@@ -21,16 +21,19 @@ class Audit(Base):
     pages_crawled: Mapped[int] = mapped_column(Integer, default=0)
     max_pages: Mapped[int] = mapped_column(Integer, default=500)
 
-    # Lighthouse aggregate scores (0-100)
+    # Lighthouse aggregate scores — Mobile (0-100)
     score_performance: Mapped[float | None] = mapped_column(Float, nullable=True)
     score_accessibility: Mapped[float | None] = mapped_column(Float, nullable=True)
     score_best_practices: Mapped[float | None] = mapped_column(Float, nullable=True)
     score_seo: Mapped[float | None] = mapped_column(Float, nullable=True)
 
-    # Core Web Vitals
+    # Core Web Vitals — Mobile
     lcp_ms: Mapped[float | None] = mapped_column(Float, nullable=True)
     inp_ms: Mapped[float | None] = mapped_column(Float, nullable=True)
     cls: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    # Lighthouse Desktop results (stored as JSON)
+    desktop_scores: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     # Celery task tracking
     celery_task_id: Mapped[str | None] = mapped_column(String(255), nullable=True)

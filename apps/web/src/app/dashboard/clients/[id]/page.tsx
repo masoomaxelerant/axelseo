@@ -60,10 +60,7 @@ export default function ClientDetailPage() {
               <h1 className="font-display text-xl font-bold text-foreground">{client.name}</h1>
               <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
                 <span className="flex items-center gap-1"><Globe className="h-3 w-3" />{client.domain}</span>
-                <span className="flex items-center gap-1"><BarChart3 className="h-3 w-3" />{client.audit_count} audits</span>
-                {client.last_audit_date && (
-                  <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />Last: {new Date(client.last_audit_date).toLocaleDateString()}</span>
-                )}
+                <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />Added {new Date(client.created_at).toLocaleDateString()}</span>
               </div>
             </div>
           </div>
@@ -72,17 +69,6 @@ export default function ClientDetailPage() {
           <Button size="sm"><Plus className="mr-2 h-3 w-3" /> New Audit</Button>
         </Link>
       </div>
-
-      {/* Overview Score */}
-      {client.avg_seo_score != null && (
-        <Card>
-          <CardContent className="py-6">
-            <div className="flex items-center justify-center">
-              <ScoreGauge score={client.avg_seo_score} label="Average SEO Score" size="lg" />
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Google Search Console Connection */}
       <Suspense fallback={<Skeleton className="h-20 rounded-lg" />}>

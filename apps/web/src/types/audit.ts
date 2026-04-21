@@ -17,6 +17,15 @@ export interface Audit {
   lcp_ms: number | null;
   inp_ms: number | null;
   cls: number | null;
+  desktop_scores?: {
+    performance: number | null;
+    accessibility: number | null;
+    best_practices: number | null;
+    seo: number | null;
+    lcp_ms: number | null;
+    inp_ms: number | null;
+    cls: number | null;
+  } | null;
   celery_task_id: string | null;
   created_at: string;
   completed_at: string | null;

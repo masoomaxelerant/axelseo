@@ -137,7 +137,17 @@ async def _run_audit_pipeline(audit_id: str, url: str, max_pages: int) -> None:
         seo_score=audit_result.scores.seo,
     )
 
-    # ── Phase 3: Update final scores ──
+    # ── Phase 3: Update final scores (mobile + desktop) ──
+    desktop_data = {
+        "performance": audit_result.desktop_scores.performance,
+        "accessibility": audit_result.desktop_scores.accessibility,
+        "best_practices": audit_result.desktop_scores.best_practices,
+        "seo": audit_result.desktop_scores.seo,
+        "lcp_ms": audit_result.desktop_core_web_vitals.lcp_ms,
+        "inp_ms": audit_result.desktop_core_web_vitals.inp_ms,
+        "cls": audit_result.desktop_core_web_vitals.cls,
+    }
+
     _update_audit(
         audit_id,
         status="completed",
@@ -153,6 +163,7 @@ async def _run_audit_pipeline(audit_id: str, url: str, max_pages: int) -> None:
         lcp_ms=audit_result.core_web_vitals.lcp_ms,
         inp_ms=audit_result.core_web_vitals.inp_ms,
         cls=audit_result.core_web_vitals.cls,
+        desktop_scores=desktop_data,
         completed_at=datetime.now(UTC),
     )
 

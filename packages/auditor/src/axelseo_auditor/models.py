@@ -87,6 +87,9 @@ class AuditResult(BaseModel):
     issues: list[SEOIssue] = Field(default_factory=list)
     core_web_vitals: CoreWebVitals = Field(default_factory=CoreWebVitals)
     lighthouse_results: list[LighthousePageResult] = Field(default_factory=list)
+    desktop_scores: Scores = Field(default_factory=Scores)
+    desktop_core_web_vitals: CoreWebVitals = Field(default_factory=CoreWebVitals)
+    desktop_lighthouse_results: list[LighthousePageResult] = Field(default_factory=list)
     summary: SummaryStats = Field(default_factory=SummaryStats)
 
     @property

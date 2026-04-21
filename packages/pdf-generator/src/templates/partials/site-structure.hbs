@@ -1,5 +1,5 @@
 {{!-- Site Structure --}}
-<div class="page">
+<div class="page overflow-ok">
   {{> page-header title="Site Structure"}}
 
   <h2>Crawl Summary</h2>
@@ -64,6 +64,60 @@
     </p>
     {{/if}}
   </div>
+
+  {{!-- Broken Pages Table --}}
+  {{#if audit.brokenPages}}
+  <div class="section-divider"></div>
+  <h3 style="color: var(--red)">Broken Pages ({{audit.brokenPages.length}})</h3>
+  <p class="summary-text" style="margin-bottom: 12px;">
+    These pages returned HTTP 4xx/5xx errors. Fix or redirect them to avoid losing visitors and link equity.
+  </p>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width: 55%">URL</th>
+        <th>Status</th>
+        <th>Title</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each audit.brokenPages}}
+      <tr>
+        <td style="word-break: break-all; font-size: 8pt">{{this.url}}</td>
+        <td class="score-cell" style="color: var(--red)">{{this.statusCode}}</td>
+        <td style="font-size: 8pt">{{this.title}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
+
+  {{!-- Slow Pages Table --}}
+  {{#if audit.slowPages}}
+  <div class="section-divider"></div>
+  <h3 style="color: var(--amber)">Slow Pages ({{audit.slowPages.length}})</h3>
+  <p class="summary-text" style="margin-bottom: 12px;">
+    These pages took over 3 seconds to load. Slow pages hurt user experience and search rankings.
+  </p>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width: 55%">URL</th>
+        <th>Load Time</th>
+        <th>Title</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each audit.slowPages}}
+      <tr>
+        <td style="word-break: break-all; font-size: 8pt">{{this.url}}</td>
+        <td class="score-cell" style="color: var(--amber)">{{formatMs this.loadTimeMs}}</td>
+        <td style="font-size: 8pt">{{this.title}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
 
   {{> page-footer pageNum="8"}}
 </div>

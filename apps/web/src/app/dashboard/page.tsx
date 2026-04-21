@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ClientCard } from "@/components/clients/client-card";
+import { Globe } from "lucide-react";
 import { NewAuditForm } from "@/components/audit/new-audit-form";
 import { useAudits } from "@/hooks/use-audits";
 import { useClients } from "@/hooks/use-clients";
@@ -140,7 +140,22 @@ export default function DashboardPage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {clients.slice(0, 6).map((client) => (
-              <ClientCard key={client.id} client={client} />
+              <Link key={client.id} href={`/dashboard/clients/${client.id}`}>
+                <Card className="group transition-all hover:shadow-md hover:border-brand-orange/30">
+                  <CardContent className="flex items-center gap-3 p-5">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-navy text-white font-display font-bold text-sm shrink-0">
+                      {client.name.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-display font-semibold text-foreground group-hover:text-brand-orange transition-colors">{client.name}</p>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Globe className="h-3 w-3" />
+                        {client.domain}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         )}

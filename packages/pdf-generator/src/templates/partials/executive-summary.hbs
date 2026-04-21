@@ -2,13 +2,23 @@
 <div class="page">
   {{> page-header title="Executive Summary"}}
 
-  <h2>Scores at a Glance</h2>
+  <h2>Scores at a Glance — Mobile</h2>
   <div class="scores-grid scores-grid-4">
     {{{scoreGaugeLarge audit.scores.seo "SEO"}}}
     {{{scoreGaugeLarge audit.scores.performance "Performance"}}}
     {{{scoreGaugeLarge audit.scores.accessibility "Accessibility"}}}
     {{{scoreGaugeLarge audit.scores.bestPractices "Best Practices"}}}
   </div>
+
+  {{#if audit.desktopScores}}
+  <h2 style="margin-top: 24px">Scores at a Glance — Desktop</h2>
+  <div class="scores-grid scores-grid-4">
+    {{{scoreGaugeLarge audit.desktopScores.seo "SEO"}}}
+    {{{scoreGaugeLarge audit.desktopScores.performance "Performance"}}}
+    {{{scoreGaugeLarge audit.desktopScores.accessibility "Accessibility"}}}
+    {{{scoreGaugeLarge audit.desktopScores.bestPractices "Best Practices"}}}
+  </div>
+  {{/if}}
 
   <div class="section-divider"></div>
 
@@ -26,9 +36,12 @@
       <strong>{{infoCount}}</strong> informational items.
     </p>
     <p>
-      Performance scored {{round audit.scores.performance}}/100 with a Largest Contentful Paint
-      of {{formatMs audit.coreWebVitals.lcp.value}}. Addressing the critical issues below will
-      have the most significant impact on your search visibility.
+      Mobile performance scored {{round audit.scores.performance}}/100 with a Largest Contentful Paint
+      of {{formatMs audit.coreWebVitals.lcp.value}}.
+      {{#if audit.desktopScores}}
+      Desktop performance scored {{round audit.desktopScores.performance}}/100.
+      {{/if}}
+      Addressing the critical issues below will have the most significant impact on your search visibility.
     </p>
   </div>
 

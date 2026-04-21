@@ -1,24 +1,86 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { MOCK_CLIENTS } from "@/lib/mock-data";
-import type { Client } from "@/types/client";
+import { useAuth } from "@clerk/nextjs";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/api";
+
+interface ClientFromAPI {
+  id: string;
+  name: string;
+  domain: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface CreateClientPayload {
+  name: string;
+  domain: string;
+  notes?: string;
+}
 
 export function useClients() {
+  const { getToken } = useAuth();
+
   return useQuery({
     queryKey: ["clients"],
-    queryFn: async (): Promise<Client[]> => {
-      // TODO: wire to real API when ready
-      return MOCK_CLIENTS;
+    queryFn: async () => {
+      const token = await getToken();
+      return apiFetch<ClientFromAPI[]>("/api/v1/clients/", {
+        token: token || undefined,
+      });
     },
   });
 }
 
 export function useClient(clientId: string) {
+  const { getToken } = useAuth();
+
   return useQuery({
     queryKey: ["client", clientId],
-    queryFn: async (): Promise<Client | undefined> => {
-      return MOCK_CLIENTS.find((c) => c.id === clientId);
+    queryFn: async () => {
+      const token = await getToken();
+      return apiFetch<ClientFromAPI>(`/api/v1/clients/${clientId}`, {
+        token: token || undefined,
+      });
+    },
+    enabled: !!clientId,
+  });
+}
+
+export function useCreateClient() {
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: CreateClientPayload) => {
+      const token = await getToken();
+      return apiFetch<ClientFromAPI>("/api/v1/clients/", {
+        method: "POST",
+        body: JSON.stringify(payload),
+        token: token || undefined,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+    },
+  });
+}
+
+export function useDeleteClient() {
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (clientId: string) => {
+      const token = await getToken();
+      return apiFetch<void>(`/api/v1/clients/${clientId}`, {
+        method: "DELETE",
+        token: token || undefined,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
   });
 }

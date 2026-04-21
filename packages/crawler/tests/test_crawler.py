@@ -17,7 +17,7 @@ class TestCrawlConfig:
         config = CrawlConfig(start_url="https://example.com")
         assert config.max_pages == 500
         assert config.max_depth == 5
-        assert config.requests_per_second == 2.0
+        assert config.requests_per_second == 5.0
         assert config.respect_robots_txt is True
         assert config.same_origin_only is True
 

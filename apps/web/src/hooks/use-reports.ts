@@ -1,14 +1,21 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
-import { MOCK_REPORTS } from "@/lib/mock-data";
-import type { Report } from "@/types/report";
+import { apiFetch } from "@/lib/api";
+import type { Audit } from "@/types/audit";
 
-export function useReports() {
+export function useCompletedAudits() {
+  const { getToken } = useAuth();
+
   return useQuery({
-    queryKey: ["reports"],
-    queryFn: async (): Promise<Report[]> => {
-      return MOCK_REPORTS;
+    queryKey: ["completed-audits"],
+    queryFn: async () => {
+      const token = await getToken();
+      const audits = await apiFetch<Audit[]>("/api/v1/audits/", {
+        token: token || undefined,
+      });
+      return audits.filter((a) => a.status === "completed");
     },
   });
 }

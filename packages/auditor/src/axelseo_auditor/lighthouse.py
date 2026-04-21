@@ -1,5 +1,6 @@
 """Lighthouse runner — executes Google Lighthouse via Node subprocess.
 
+Supports both mobile (default) and desktop emulation modes.
 Parses JSON output to extract performance, accessibility, best-practices,
 and SEO scores plus Core Web Vitals metrics.
 """
@@ -19,8 +20,6 @@ logger = structlog.get_logger(__name__)
 
 
 def _find_lighthouse() -> str | None:
-    """Find the lighthouse CLI on the system."""
-    # Try npx first, then global install
     for cmd in ["lighthouse", "npx lighthouse"]:
         base = cmd.split()[0]
         if shutil.which(base):
@@ -28,10 +27,19 @@ def _find_lighthouse() -> str | None:
     return None
 
 
-async def run_lighthouse(url: str, timeout_seconds: int = 120) -> LighthousePageResult | None:
+async def run_lighthouse(
+    url: str,
+    timeout_seconds: int = 120,
+    preset: str = "mobile",
+) -> LighthousePageResult | None:
     """Run a Lighthouse audit on a single URL.
 
-    Returns a LighthousePageResult or None if Lighthouse is unavailable or fails.
+    Args:
+        url: Page URL to audit.
+        timeout_seconds: Max wait time.
+        preset: "mobile" (default Lighthouse behavior) or "desktop".
+
+    Returns LighthousePageResult or None on failure.
     """
     lh_cmd = _find_lighthouse()
     if not lh_cmd:
@@ -46,7 +54,10 @@ async def run_lighthouse(url: str, timeout_seconds: int = 120) -> LighthousePage
         "--quiet",
     ]
 
-    logger.info("lighthouse.running", url=url)
+    if preset == "desktop":
+        cmd_parts.append("--preset=desktop")
+
+    logger.info("lighthouse.running", url=url, preset=preset)
 
     try:
         proc = await asyncio.create_subprocess_exec(
@@ -59,19 +70,14 @@ async def run_lighthouse(url: str, timeout_seconds: int = 120) -> LighthousePage
         )
 
         if proc.returncode != 0:
-            logger.warning(
-                "lighthouse.failed",
-                url=url,
-                returncode=proc.returncode,
-                stderr=stderr.decode()[:500],
-            )
+            logger.warning("lighthouse.failed", url=url, preset=preset, returncode=proc.returncode)
             return None
 
         data = json.loads(stdout.decode())
         return _parse_lighthouse_json(url, data)
 
     except asyncio.TimeoutError:
-        logger.warning("lighthouse.timeout", url=url, timeout=timeout_seconds)
+        logger.warning("lighthouse.timeout", url=url, preset=preset, timeout=timeout_seconds)
         return None
     except (json.JSONDecodeError, KeyError, TypeError) as e:
         logger.warning("lighthouse.parse_error", url=url, error=str(e))
@@ -79,7 +85,6 @@ async def run_lighthouse(url: str, timeout_seconds: int = 120) -> LighthousePage
 
 
 def _parse_lighthouse_json(url: str, data: dict[str, Any]) -> LighthousePageResult:
-    """Extract scores and metrics from Lighthouse JSON output."""
     categories = data.get("categories", {})
     audits = data.get("audits", {})
 
@@ -116,11 +121,12 @@ def _parse_lighthouse_json(url: str, data: dict[str, Any]) -> LighthousePageResu
 async def run_lighthouse_batch(
     urls: list[str],
     timeout_seconds: int = 120,
+    preset: str = "mobile",
 ) -> list[LighthousePageResult]:
-    """Run Lighthouse on multiple URLs sequentially (to avoid resource contention)."""
+    """Run Lighthouse on multiple URLs sequentially."""
     results: list[LighthousePageResult] = []
     for url in urls:
-        result = await run_lighthouse(url, timeout_seconds)
+        result = await run_lighthouse(url, timeout_seconds, preset=preset)
         if result:
             results.append(result)
     return results

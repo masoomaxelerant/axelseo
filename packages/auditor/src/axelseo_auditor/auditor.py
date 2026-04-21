@@ -77,31 +77,38 @@ class Auditor:
         # Step 2: Lighthouse (if enabled)
         if self._config.run_lighthouse:
             sample_urls = self._select_lighthouse_sample(pages)
-            logger.info("auditor.lighthouse_starting", sample_size=len(sample_urls))
 
+            # Mobile
+            logger.info("auditor.lighthouse_starting", sample_size=len(sample_urls), preset="mobile")
             lh_results = await run_lighthouse_batch(
-                sample_urls, self._config.lighthouse_timeout_seconds
+                sample_urls, self._config.lighthouse_timeout_seconds, preset="mobile"
             )
             result.lighthouse_results = lh_results
-
             if lh_results:
                 lh_scores = compute_lighthouse_scores(lh_results)
                 result.scores.performance = lh_scores.performance
                 result.scores.accessibility = lh_scores.accessibility
                 result.scores.best_practices = lh_scores.best_practices
                 result.core_web_vitals = compute_core_web_vitals(lh_results)
+                logger.info("auditor.lighthouse_mobile_done", pages=len(lh_results), perf=lh_scores.performance)
 
-                logger.info(
-                    "auditor.lighthouse_complete",
-                    pages_audited=len(lh_results),
-                    perf=lh_scores.performance,
-                    a11y=lh_scores.accessibility,
-                )
-            else:
-                logger.warning("auditor.lighthouse_no_results")
+            # Desktop
+            logger.info("auditor.lighthouse_starting", sample_size=len(sample_urls), preset="desktop")
+            desktop_results = await run_lighthouse_batch(
+                sample_urls, self._config.lighthouse_timeout_seconds, preset="desktop"
+            )
+            result.desktop_lighthouse_results = desktop_results
+            if desktop_results:
+                ds = compute_lighthouse_scores(desktop_results)
+                result.desktop_scores.performance = ds.performance
+                result.desktop_scores.accessibility = ds.accessibility
+                result.desktop_scores.best_practices = ds.best_practices
+                result.desktop_core_web_vitals = compute_core_web_vitals(desktop_results)
+                logger.info("auditor.lighthouse_desktop_done", pages=len(desktop_results), perf=ds.performance)
 
-        # Step 3: SEO score from issue analysis
+        # Step 3: SEO score from issue analysis (same for both modes)
         result.scores.seo = compute_seo_score(result)
+        result.desktop_scores.seo = result.scores.seo
 
         # Step 4: Summary stats
         result.summary = compute_summary_stats(pages, result)

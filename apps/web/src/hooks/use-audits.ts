@@ -98,8 +98,12 @@ export function useRetryAudit() {
         token: token || undefined,
       });
     },
-    onSuccess: () => {
+    onSuccess: (data, auditId) => {
+      // Immediately update the cache with the new "pending" status
+      // so refetchInterval resumes polling
+      queryClient.setQueryData(["audit", auditId], data);
       queryClient.invalidateQueries({ queryKey: ["audits"] });
+      queryClient.invalidateQueries({ queryKey: ["audit-pages", auditId] });
     },
   });
 }

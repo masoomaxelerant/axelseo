@@ -12,8 +12,8 @@ class AuditCreate(BaseModel):
     @field_validator("max_pages")
     @classmethod
     def validate_max_pages(cls, v: int) -> int:
-        if v < 1 or v > 500:
-            raise ValueError("max_pages must be between 1 and 500")
+        if v < 1 or v > 10000:
+            raise ValueError("max_pages must be between 1 and 10,000")
         return v
 
 

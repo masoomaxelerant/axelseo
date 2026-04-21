@@ -30,6 +30,19 @@ export interface AuditData {
     cls: { value: number; rating: "good" | "needs-improvement" | "poor" };
   };
 
+  desktopScores?: {
+    seo: number;
+    performance: number;
+    accessibility: number;
+    bestPractices: number;
+  };
+
+  desktopCoreWebVitals?: {
+    lcp: { value: number; rating: "good" | "needs-improvement" | "poor" };
+    inp: { value: number; rating: "good" | "needs-improvement" | "poor" };
+    cls: { value: number; rating: "good" | "needs-improvement" | "poor" };
+  };
+
   issues: ReportIssue[];
 
   siteStructure: {

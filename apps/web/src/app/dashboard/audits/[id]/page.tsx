@@ -2,7 +2,8 @@
 
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Download, RefreshCw, Trash2, StopCircle, Globe, Calendar, FileText } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Download, RefreshCw, Trash2, StopCircle, Globe, Calendar, FileText, Smartphone, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -95,26 +96,7 @@ export default function AuditDetailPage() {
 
       {/* Score gauges — only for completed audits */}
       {audit.status === "completed" && (
-        <>
-          {/* Overview scores */}
-          <Card>
-            <CardContent className="py-6">
-              <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
-                <div className="relative flex justify-center">
-                  <ScoreGauge score={audit.score_seo} label="SEO" size="lg" />
-                </div>
-                <div className="relative flex justify-center">
-                  <ScoreGauge score={audit.score_performance} label="Performance" size="lg" />
-                </div>
-                <div className="relative flex justify-center">
-                  <ScoreGauge score={audit.score_accessibility} label="Accessibility" size="lg" />
-                </div>
-                <div className="relative flex justify-center">
-                  <ScoreGauge score={audit.score_best_practices} label="Best Practices" size="lg" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <AuditScoresSection audit={audit} auditId={auditId}>
 
           {/* CWV + Site Structure */}
           <div className="grid gap-6 lg:grid-cols-2">
@@ -122,7 +104,7 @@ export default function AuditDetailPage() {
               <CoreWebVitalsCard vitals={audit.core_web_vitals} />
             )}
             {"site_structure" in audit && audit.site_structure && (
-              <SiteStructureCard structure={audit.site_structure} />
+              <SiteStructureCard structure={audit.site_structure} auditId={auditId} />
             )}
           </div>
 
@@ -131,37 +113,45 @@ export default function AuditDetailPage() {
             <div className="space-y-6">
               <h2 className="font-display text-lg font-bold text-foreground">Detailed Analysis</h2>
 
-              <ScoreBreakdown
-                score={audit.score_seo}
-                label="SEO"
-                sectionKey="seo"
-                issues={audit.issues}
-                description="These checks ensure that your page is following basic search engine optimization advice."
-              />
+              <div id="section-seo" className="scroll-mt-20">
+                <ScoreBreakdown
+                  score={audit.score_seo}
+                  label="SEO"
+                  sectionKey="seo"
+                  issues={audit.issues}
+                  description="These checks ensure that your page is following basic search engine optimization advice."
+                />
+              </div>
 
-              <ScoreBreakdown
-                score={audit.score_performance}
-                label="Performance"
-                sectionKey="performance"
-                issues={audit.issues}
-                description="These metrics measure page load speed, visual stability, and resource optimization."
-              />
+              <div id="section-performance" className="scroll-mt-20">
+                <ScoreBreakdown
+                  score={audit.score_performance}
+                  label="Performance"
+                  sectionKey="performance"
+                  issues={audit.issues}
+                  description="These metrics measure page load speed, visual stability, and resource optimization."
+                />
+              </div>
 
-              <ScoreBreakdown
-                score={audit.score_accessibility}
-                label="Accessibility"
-                sectionKey="accessibility"
-                issues={audit.issues}
-                description="These checks highlight opportunities to improve the accessibility of your web app for all users."
-              />
+              <div id="section-accessibility" className="scroll-mt-20">
+                <ScoreBreakdown
+                  score={audit.score_accessibility}
+                  label="Accessibility"
+                  sectionKey="accessibility"
+                  issues={audit.issues}
+                  description="These checks highlight opportunities to improve the accessibility of your web app for all users."
+                />
+              </div>
 
-              <ScoreBreakdown
-                score={audit.score_best_practices}
-                label="Best Practices"
-                sectionKey="best_practices"
-                issues={audit.issues}
-                description="These checks ensure your page follows web development best practices."
-              />
+              <div id="section-best_practices" className="scroll-mt-20">
+                <ScoreBreakdown
+                  score={audit.score_best_practices}
+                  label="Best Practices"
+                  sectionKey="best_practices"
+                  issues={audit.issues}
+                  description="These checks ensure your page follows web development best practices."
+                />
+              </div>
             </div>
           )}
 
@@ -175,9 +165,84 @@ export default function AuditDetailPage() {
 
           {/* Trend chart */}
           <TrendChart data={MOCK_SCORE_HISTORY} title="Historical Trend" />
-        </>
+        </AuditScoresSection>
       )}
     </div>
+  );
+}
+
+function AuditScoresSection({ audit, auditId, children }: { audit: any; auditId: string; children: React.ReactNode }) {
+  const [device, setDevice] = useState<"mobile" | "desktop">("mobile");
+
+  const ds = audit.desktop_scores;
+  const hasDesktop = ds && ds.performance != null;
+
+  // Pick scores based on selected device
+  const scores = device === "desktop" && hasDesktop
+    ? { performance: ds.performance, accessibility: ds.accessibility, best_practices: ds.best_practices, seo: ds.seo ?? audit.score_seo }
+    : { performance: audit.score_performance, accessibility: audit.score_accessibility, best_practices: audit.score_best_practices, seo: audit.score_seo };
+
+  const cwv = device === "desktop" && hasDesktop
+    ? { lcp_ms: ds.lcp_ms, inp_ms: ds.inp_ms, cls: ds.cls }
+    : { lcp_ms: audit.lcp_ms, inp_ms: audit.inp_ms, cls: audit.cls };
+
+  return (
+    <>
+      {/* Device toggle + scores */}
+      <Card>
+        <CardContent className="py-6">
+          {/* Mobile / Desktop toggle */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
+              <button
+                onClick={() => setDevice("mobile")}
+                className={`inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-xs font-medium transition-colors ${
+                  device === "mobile" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Smartphone className="h-3.5 w-3.5" />
+                Mobile
+              </button>
+              <button
+                onClick={() => setDevice("desktop")}
+                className={`inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-xs font-medium transition-colors ${
+                  device === "desktop"
+                    ? "bg-white text-foreground shadow-sm"
+                    : hasDesktop
+                      ? "text-muted-foreground hover:text-foreground"
+                      : "text-gray-300 cursor-not-allowed"
+                }`}
+                disabled={!hasDesktop}
+                title={hasDesktop ? "Desktop results" : "Desktop data not available — run a new audit to get desktop scores"}
+              >
+                <Monitor className="h-3.5 w-3.5" />
+                Desktop
+                {!hasDesktop && <span className="text-[9px] ml-1 opacity-50">(N/A)</span>}
+              </button>
+            </div>
+          </div>
+
+          {/* Score gauges */}
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+            <a href="#section-seo" className="relative flex justify-center cursor-pointer hover:opacity-80 transition-opacity">
+              <ScoreGauge score={scores.seo} label="SEO" size="lg" />
+            </a>
+            <a href="#section-performance" className="relative flex justify-center cursor-pointer hover:opacity-80 transition-opacity">
+              <ScoreGauge score={scores.performance} label="Performance" size="lg" />
+            </a>
+            <a href="#section-accessibility" className="relative flex justify-center cursor-pointer hover:opacity-80 transition-opacity">
+              <ScoreGauge score={scores.accessibility} label="Accessibility" size="lg" />
+            </a>
+            <a href="#section-best_practices" className="relative flex justify-center cursor-pointer hover:opacity-80 transition-opacity">
+              <ScoreGauge score={scores.best_practices} label="Best Practices" size="lg" />
+            </a>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Rest of the content (CWV, breakdowns, issues, etc.) */}
+      {children}
+    </>
   );
 }
 

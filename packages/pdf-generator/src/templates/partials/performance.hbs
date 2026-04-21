@@ -1,11 +1,11 @@
 {{!-- Technical Performance --}}
-<div class="page">
+<div class="page overflow-ok">
   {{> page-header title="Technical Performance"}}
 
-  <h2>Core Web Vitals</h2>
+  <h2>Core Web Vitals — Mobile</h2>
   <p class="summary-text" style="margin-bottom: 16px;">
     Core Web Vitals are the key metrics Google uses to measure real-world user experience.
-    They directly impact your search rankings.
+    They directly impact your search rankings. Mobile results shown below.
   </p>
 
   <div class="cwv-grid">
@@ -14,6 +14,15 @@
     {{{cwvBadge "CLS" audit.coreWebVitals.cls.value "< 0.1" audit.coreWebVitals.cls.rating}}}
   </div>
 
+  {{#if audit.desktopCoreWebVitals}}
+  <h2 style="margin-top: 24px">Core Web Vitals — Desktop</h2>
+  <div class="cwv-grid">
+    {{{cwvBadge "LCP" (formatMs audit.desktopCoreWebVitals.lcp.value) "< 2.5s" audit.desktopCoreWebVitals.lcp.rating}}}
+    {{{cwvBadge "INP" (formatMs audit.desktopCoreWebVitals.inp.value) "< 200ms" audit.desktopCoreWebVitals.inp.rating}}}
+    {{{cwvBadge "CLS" audit.desktopCoreWebVitals.cls.value "< 0.1" audit.desktopCoreWebVitals.cls.rating}}}
+  </div>
+  {{/if}}
+
   <div class="section-divider"></div>
 
   <h3>What These Mean</h3>
@@ -21,30 +30,32 @@
     <div class="method-card">
       <h4 style="color: {{ratingColor audit.coreWebVitals.lcp.rating}}">LCP: Largest Contentful Paint</h4>
       <p>How long it takes for the main content of your page to become visible.
-      Your site loads its main content in <strong>{{formatMs audit.coreWebVitals.lcp.value}}</strong>.
+      Your site loads its main content in <strong>{{formatMs audit.coreWebVitals.lcp.value}}</strong> on mobile.
       {{#if (eq audit.coreWebVitals.lcp.rating "good")}}This is excellent.{{else}}Aim for under 2.5 seconds.{{/if}}</p>
     </div>
     <div class="method-card">
       <h4 style="color: {{ratingColor audit.coreWebVitals.inp.rating}}">INP: Interaction to Next Paint</h4>
       <p>How quickly your site responds when a user clicks or taps.
-      Your site responds in <strong>{{formatMs audit.coreWebVitals.inp.value}}</strong>.
+      Your site responds in <strong>{{formatMs audit.coreWebVitals.inp.value}}</strong> on mobile.
       {{#if (eq audit.coreWebVitals.inp.rating "good")}}This feels snappy.{{else}}Aim for under 200ms.{{/if}}</p>
     </div>
   </div>
 
-  <h3>Performance Score Breakdown</h3>
+  <h3>Performance Score Comparison</h3>
   <div class="stat-grid">
     <div class="stat-card">
       <div class="stat-value" style="color: {{scoreColor audit.scores.performance}}">{{round audit.scores.performance}}</div>
-      <div class="stat-label">Performance</div>
+      <div class="stat-label">Mobile Performance</div>
     </div>
+    {{#if audit.desktopScores}}
+    <div class="stat-card">
+      <div class="stat-value" style="color: {{scoreColor audit.desktopScores.performance}}">{{round audit.desktopScores.performance}}</div>
+      <div class="stat-label">Desktop Performance</div>
+    </div>
+    {{/if}}
     <div class="stat-card">
       <div class="stat-value">{{formatMs audit.siteStructure.avgLoadTimeMs}}</div>
       <div class="stat-label">Avg Load Time</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value">{{formatNumber audit.pagesCrawled}}</div>
-      <div class="stat-label">Pages Tested</div>
     </div>
   </div>
 
