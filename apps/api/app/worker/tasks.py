@@ -14,7 +14,13 @@ from app.worker import celery_app
 logger = get_logger(__name__)
 
 # Celery workers are sync — use sync SQLAlchemy engine
-_sync_url = settings.database_url.replace("+asyncpg", "")
+# _sync_url = settings.database_url.replace("+asyncpg", "").replace("?ssl=require", "?sslmode=require").replace("?ssl=true", "?sslmode=require")
+_sync_url = (
+    settings.database_url
+    .replace("+asyncpg", "")
+    .replace("?ssl=require", "?sslmode=require")
+    .replace("?ssl=true", "?sslmode=require")
+)
 sync_engine = create_engine(_sync_url)
 
 
