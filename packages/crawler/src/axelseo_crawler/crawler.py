@@ -273,7 +273,89 @@ class Crawler:
         self._queue.appendleft(_QueueItem(start_url, 0))
 
     async def _crawl_page(self, url: str, depth: int) -> CrawledPage | None:
-        """Fetch a single page using the shared browser context."""
+        """Fetch a page. Uses httpx fast mode when enabled, falls back to Playwright."""
+        if self._config.use_httpx_fast_mode and depth > 0:
+            return await self._crawl_page_httpx(url, depth)
+        return await self._crawl_page_playwright(url, depth)
+
+    async def _crawl_page_httpx(self, url: str, depth: int) -> CrawledPage | None:
+        """Fast HTTP-only fetch using httpx — ~10x faster than Playwright.
+
+        Used for discovering links and extracting SEO metadata.
+        Doesn't execute JavaScript, but most SEO data is in the initial HTML.
+        """
+        import httpx
+
+        for attempt in range(1, self._config.max_retries + 1):
+            try:
+                t0 = time.monotonic()
+                async with httpx.AsyncClient(
+                    follow_redirects=True,
+                    timeout=self._config.page_timeout_ms / 1000,
+                    headers={"User-Agent": self._config.user_agent},
+                ) as client:
+                    resp = await client.get(url)
+
+                load_time_ms = (time.monotonic() - t0) * 1000
+                status_code = resp.status_code
+                final_url = str(resp.url)
+                html_source = resp.text
+                resp_headers = {k.lower(): v for k, v in resp.headers.items()}
+
+                # Track redirects
+                redirect_chain: list[RedirectHop] = []
+                for r in resp.history:
+                    redirect_chain.append(RedirectHop(url=str(r.url), status_code=r.status_code))
+
+                page_weight = len(html_source.encode())
+                soup = BeautifulSoup(html_source, "lxml")
+                origin = self._config.origin
+                links = extract_links(soup, final_url, origin)
+
+                if len(redirect_chain) > 1:
+                    self._summary.redirect_chains.append(redirect_chain)
+                if status_code >= 400:
+                    self._summary.broken_links.append(final_url)
+
+                result = CrawledPage(
+                    url=url, final_url=final_url, status_code=status_code,
+                    redirect_chain=redirect_chain, depth=depth,
+                    html=html_source, rendered_dom="",
+                    title=extract_title(soup),
+                    meta_description=extract_meta_description(soup),
+                    meta_robots=extract_meta_robots(soup),
+                    canonical_url=extract_canonical(soup),
+                    headings=extract_headings(soup),
+                    images=extract_images(soup),
+                    links=links,
+                    open_graph=extract_open_graph(soup),
+                    twitter_card=extract_twitter_card(soup),
+                    schema_org=extract_schema_org(soup),
+                    response_headers=resp_headers,
+                    performance=PagePerformance(
+                        load_time_ms=round(load_time_ms, 1),
+                        page_weight_bytes=page_weight,
+                        resource_count=0,
+                    ),
+                    screenshot_path=None,
+                )
+
+                logger.info("page.crawled", url=final_url, status=status_code, load_ms=round(load_time_ms), depth=depth, mode="httpx")
+                return result
+
+            except Exception as e:
+                logger.warning("page.error", url=url, attempt=attempt, error=str(e), mode="httpx")
+                if attempt < self._config.max_retries:
+                    await asyncio.sleep(0.5)
+                else:
+                    self._summary.pages_failed += 1
+                    self._summary.errors.append({"url": url, "error": str(e)})
+                    return CrawledPage(url=url, final_url=url, status_code=0, depth=depth, error=str(e))
+
+        return None
+
+    async def _crawl_page_playwright(self, url: str, depth: int) -> CrawledPage | None:
+        """Full browser fetch using Playwright — handles JS-rendered pages."""
         assert self._context is not None
 
         for attempt in range(1, self._config.max_retries + 1):
@@ -295,7 +377,6 @@ class Crawler:
                 page.on("response", on_response)
                 page.on("requestfinished", on_request_finished)
 
-                # domcontentloaded is much faster than networkidle
                 t0 = time.monotonic()
                 response = await page.goto(
                     url,
@@ -361,7 +442,7 @@ class Crawler:
                     screenshot_path=screenshot_path,
                 )
 
-                logger.info("page.crawled", url=final_url, status=status_code, load_ms=round(load_time_ms), depth=depth)
+                logger.info("page.crawled", url=final_url, status=status_code, load_ms=round(load_time_ms), depth=depth, mode="playwright")
                 return result
 
             except Exception as e:

@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     s3_bucket_name: str = "axelseo-reports"
     s3_public_url: str = ""
 
+    # Crawler tuning
+    crawler_concurrency: int = 5
+    crawler_rps: float = 10.0
+    crawler_page_timeout_ms: int = 12_000
+    crawler_max_retries: int = 2
+
     # Logging
     log_level: str = "INFO"
 

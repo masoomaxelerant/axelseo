@@ -16,6 +16,7 @@ class CrawlConfig(BaseModel):
     page_timeout_ms: int = 15_000
     max_retries: int = 2
     block_resources: bool = True
+    use_httpx_fast_mode: bool = True
     take_screenshots: bool = False
     screenshot_width: int = 1280
     screenshot_height: int = 800
