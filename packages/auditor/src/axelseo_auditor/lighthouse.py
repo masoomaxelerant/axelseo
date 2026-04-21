@@ -34,6 +34,7 @@ async def run_lighthouse(
     url: str,
     timeout_seconds: int = 120,
     preset: str = "mobile",
+    psi_api_key: str | None = None,
 ) -> LighthousePageResult | None:
     """Run Lighthouse — tries local CLI first, falls back to PageSpeed Insights API."""
     # Try local Lighthouse first
@@ -43,9 +44,9 @@ async def run_lighthouse(
         if result:
             return result
 
-    # Fallback: PageSpeed Insights API (free, no API key needed)
+    # Fallback: PageSpeed Insights API
     logger.info("lighthouse.using_psi_fallback", url=url, preset=preset)
-    return await _run_pagespeed_insights(url, timeout_seconds, preset)
+    return await _run_pagespeed_insights(url, timeout_seconds, preset, api_key=psi_api_key)
 
 
 async def _run_local_lighthouse(
@@ -90,28 +91,46 @@ async def _run_local_lighthouse(
 
 
 async def _run_pagespeed_insights(
-    url: str, timeout_seconds: int, preset: str
+    url: str, timeout_seconds: int, preset: str,
+    api_key: str | None = None,
 ) -> LighthousePageResult | None:
-    """Fetch Lighthouse data from Google's PageSpeed Insights API (free, no key needed)."""
-    strategy = "DESKTOP" if preset == "desktop" else "MOBILE"
-    params = {
-        "url": url,
-        "strategy": strategy,
-        "category": ["PERFORMANCE", "ACCESSIBILITY", "BEST_PRACTICES", "SEO"],
-    }
+    """Fetch Lighthouse data from Google's PageSpeed Insights API.
 
-    logger.info("lighthouse.psi_request", url=url, strategy=strategy)
+    Works without an API key (low quota ~25/day) or with a key (25,000/day free).
+    Get a free key at: https://developers.google.com/speed/docs/insights/v5/get-started
+    """
+    strategy = "DESKTOP" if preset == "desktop" else "MOBILE"
+
+    # Build URL manually — httpx doesn't handle repeated params well
+    psi_url = (
+        f"{PSI_API_URL}?url={httpx.URL(url)}"
+        f"&strategy={strategy}"
+        f"&category=PERFORMANCE&category=ACCESSIBILITY&category=BEST_PRACTICES&category=SEO"
+    )
+    if api_key:
+        psi_url += f"&key={api_key}"
+
+    logger.info("lighthouse.psi_request", url=url, strategy=strategy, has_key=bool(api_key))
 
     try:
         async with httpx.AsyncClient(timeout=timeout_seconds) as client:
-            resp = await client.get(PSI_API_URL, params=params)
+            resp = await client.get(psi_url)
+
+        if resp.status_code == 429:
+            logger.warning("lighthouse.psi_rate_limited", url=url, hint="Add PSI_API_KEY env var for higher quota")
+            return None
 
         if resp.status_code != 200:
-            logger.warning("lighthouse.psi_failed", url=url, status=resp.status_code)
+            body = resp.text[:200]
+            logger.warning("lighthouse.psi_failed", url=url, status=resp.status_code, body=body)
             return None
 
         data = resp.json()
         lh_result = data.get("lighthouseResult", {})
+        if not lh_result.get("categories"):
+            logger.warning("lighthouse.psi_empty_result", url=url)
+            return None
+
         return _parse_lighthouse_json(url, lh_result)
 
     except httpx.TimeoutException:
@@ -161,14 +180,16 @@ async def run_lighthouse_batch(
     urls: list[str],
     timeout_seconds: int = 120,
     preset: str = "mobile",
+    psi_api_key: str | None = None,
 ) -> list[LighthousePageResult]:
     """Run Lighthouse on multiple URLs sequentially."""
     results: list[LighthousePageResult] = []
+    using_psi = not _find_lighthouse()
     for url in urls:
-        result = await run_lighthouse(url, timeout_seconds, preset=preset)
+        result = await run_lighthouse(url, timeout_seconds, preset=preset, psi_api_key=psi_api_key)
         if result:
             results.append(result)
-        # Rate limit for PSI API (25 req/min)
-        if not _find_lighthouse():
+        # Rate limit for PSI API
+        if using_psi:
             await asyncio.sleep(3)
     return results

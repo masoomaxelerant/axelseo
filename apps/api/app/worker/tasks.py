@@ -131,6 +131,7 @@ async def _run_audit_pipeline(audit_id: str, url: str, max_pages: int) -> None:
     audit_config = AuditConfig(
         run_lighthouse=True,
         lighthouse_sample_size=5,
+        psi_api_key=settings.psi_api_key,
     )
     auditor = Auditor(audit_config)
     audit_result = await auditor.analyze(crawled_pages)

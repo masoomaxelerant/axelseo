@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     s3_bucket_name: str = "axelseo-reports"
     s3_public_url: str = ""
 
+    # PageSpeed Insights API key (free: https://developers.google.com/speed/docs/insights/v5/get-started)
+    psi_api_key: str = ""
+
     # Crawler tuning
     crawler_concurrency: int = 5
     crawler_rps: float = 10.0

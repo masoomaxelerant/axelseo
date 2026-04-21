@@ -9,6 +9,7 @@ class AuditConfig(BaseModel):
     run_lighthouse: bool = True
     lighthouse_sample_size: int = 5
     lighthouse_timeout_seconds: int = 120
+    psi_api_key: str = ""
     thin_content_threshold: int = 300
     max_title_length: int = 60
     min_title_length: int = 30

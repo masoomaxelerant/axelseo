@@ -78,10 +78,12 @@ class Auditor:
         if self._config.run_lighthouse:
             sample_urls = self._select_lighthouse_sample(pages)
 
+            psi_key = self._config.psi_api_key or None
+
             # Mobile
             logger.info("auditor.lighthouse_starting", sample_size=len(sample_urls), preset="mobile")
             lh_results = await run_lighthouse_batch(
-                sample_urls, self._config.lighthouse_timeout_seconds, preset="mobile"
+                sample_urls, self._config.lighthouse_timeout_seconds, preset="mobile", psi_api_key=psi_key
             )
             result.lighthouse_results = lh_results
             if lh_results:
@@ -95,7 +97,7 @@ class Auditor:
             # Desktop
             logger.info("auditor.lighthouse_starting", sample_size=len(sample_urls), preset="desktop")
             desktop_results = await run_lighthouse_batch(
-                sample_urls, self._config.lighthouse_timeout_seconds, preset="desktop"
+                sample_urls, self._config.lighthouse_timeout_seconds, preset="desktop", psi_api_key=psi_key
             )
             result.desktop_lighthouse_results = desktop_results
             if desktop_results:
