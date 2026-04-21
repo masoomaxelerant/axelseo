@@ -1,3 +1,5 @@
+import ssl
+
 from celery import Celery
 from celery.schedules import crontab
 
@@ -8,6 +10,12 @@ celery_app = Celery(
     broker=settings.redis_url,
     backend=settings.redis_url,
 )
+
+# TLS config for Upstash Redis (rediss://)
+# Required because Upstash uses TLS and Celery needs explicit SSL settings
+if settings.redis_url.startswith("rediss://"):
+    celery_app.conf.broker_use_ssl = {"ssl_cert_reqs": ssl.CERT_NONE}
+    celery_app.conf.redis_backend_use_ssl = {"ssl_cert_reqs": ssl.CERT_NONE}
 
 celery_app.conf.update(
     task_serializer="json",
