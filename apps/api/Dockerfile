@@ -12,19 +12,19 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copy workspace packages first (for better layer caching)
+# CRITICAL: Copy workspace packages FIRST and install them BEFORE the API
+# This ensures pip can find axelseo-crawler and axelseo-auditor as local packages
 COPY packages/crawler /app/packages/crawler
 COPY packages/auditor /app/packages/auditor
 
-# Copy API code
+# Install workspace packages in editable mode
+RUN pip install --no-cache-dir -e /app/packages/crawler
+RUN pip install --no-cache-dir -e /app/packages/auditor
+
+# Now copy and install the API (which depends on the workspace packages above)
 COPY apps/api /app/apps/api
-
 WORKDIR /app/apps/api
-
-# Install Python deps
-RUN pip install --no-cache-dir -e ".[dev]" \
-    && pip install --no-cache-dir -e ../../packages/crawler \
-    && pip install --no-cache-dir -e ../../packages/auditor
+RUN pip install --no-cache-dir -e .
 
 # Install Playwright browser
 RUN playwright install chromium --with-deps
@@ -32,8 +32,7 @@ RUN playwright install chromium --with-deps
 # Install Lighthouse globally
 RUN npm install -g lighthouse
 
-# Port (Render provides $PORT env var)
 EXPOSE 8000
 
-# Default command (overridden by Render service config)
+# Default command - overridden by worker service
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
