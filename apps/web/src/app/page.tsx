@@ -4,6 +4,7 @@ import {
   Search, BarChart3, FileText, Globe, Smartphone, Monitor,
   Shield, Zap, Link2, CheckCircle2, ArrowRight, ChevronRight,
 } from "lucide-react";
+import { HeroAuditForm } from "@/components/home/hero-audit-form";
 
 export default async function Home() {
   const { userId } = await auth();
@@ -54,24 +55,8 @@ export default async function Home() {
             branded PDF reports — all without paid third-party tools.
           </p>
 
-          {/* Quick audit input */}
-          <div className="mt-10 flex items-center justify-center gap-3 max-w-xl mx-auto">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-              <input
-                type="text"
-                placeholder="Enter a URL to audit..."
-                className="w-full rounded-lg bg-white/10 border border-white/10 pl-11 pr-4 py-3.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-brand-orange/50 focus:ring-1 focus:ring-brand-orange/30 transition-colors"
-                disabled
-              />
-            </div>
-            <Link
-              href={isLoggedIn ? "/dashboard/audits/new" : "/auth/sign-up"}
-              className="rounded-lg bg-brand-orange px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-orange-600 whitespace-nowrap"
-            >
-              Run Free Audit
-            </Link>
-          </div>
+          {/* Quick audit input — works for everyone, no login needed */}
+          <HeroAuditForm />
 
           {/* Stats */}
           <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-2xl mx-auto">

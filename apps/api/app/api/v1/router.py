@@ -1,8 +1,9 @@
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import audits, clients, gsc, projects
+from app.api.v1.endpoints import audits, clients, gsc, projects, quick_audit
 
 api_router = APIRouter()
+api_router.include_router(quick_audit.router, tags=["quick-audit"])  # Public, no auth
 api_router.include_router(audits.router, prefix="/audits", tags=["audits"])
 api_router.include_router(clients.router, prefix="/clients", tags=["clients"])
 api_router.include_router(projects.router, prefix="/projects", tags=["projects"])
