@@ -40,7 +40,7 @@ export default async function Home() {
         <div className="relative max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs text-gray-300 mb-8">
             <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
-            Open-source SEO auditing — no Semrush needed
+            Open-source SEO auditing — no paid tools needed
           </div>
 
           <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight tracking-tight">
@@ -208,7 +208,7 @@ export default async function Home() {
             Ready to run your first audit?
           </h2>
           <p className="mt-4 text-gray-400">
-            No credit card. No Semrush subscription. Just paste a URL and go.
+            No credit card. No subscriptions. Just paste a URL and go.
           </p>
           <div className="mt-8 flex items-center justify-center gap-4">
             <Link
