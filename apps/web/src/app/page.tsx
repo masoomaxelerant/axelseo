@@ -5,6 +5,7 @@ import {
   Shield, Zap, Link2, CheckCircle2, ArrowRight, ChevronRight,
 } from "lucide-react";
 import { HeroAuditForm } from "@/components/home/hero-audit-form";
+import { NavUserButton } from "@/components/home/nav-user-button";
 
 export default async function Home() {
   const { userId } = await auth();
@@ -19,9 +20,12 @@ export default async function Home() {
         </span>
         <div className="flex items-center gap-3">
           {isLoggedIn ? (
-            <Link href="/dashboard" className="rounded-md bg-brand-orange px-5 py-2 text-sm font-semibold transition-colors hover:bg-orange-600">
-              Dashboard
-            </Link>
+            <>
+              <Link href="/dashboard" className="rounded-md bg-brand-orange px-5 py-2 text-sm font-semibold transition-colors hover:bg-orange-600">
+                Dashboard
+              </Link>
+              <NavUserButton />
+            </>
           ) : (
             <>
               <Link href="/auth/sign-in" className="text-sm text-gray-300 hover:text-white transition-colors">Sign In</Link>
