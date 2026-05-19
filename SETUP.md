@@ -19,8 +19,14 @@ brew install node python@3.12 git
 npm install -g pnpm
 ```
 
-**3. Install Docker Desktop:**
-Download from [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/) and install.
+**3. Install a container runtime** (pick one):
+
+| Option | Install | Notes |
+|--------|---------|-------|
+| **OrbStack** (recommended) | `brew install orbstack` | Lightweight, fast, low memory. [orbstack.dev](https://orbstack.dev) |
+| **Docker Desktop** | [Download](https://www.docker.com/products/docker-desktop/) | Full-featured, heavier on resources |
+
+Both work identically with `docker compose` — no code changes needed.
 
 ### Linux (Ubuntu/Debian)
 
