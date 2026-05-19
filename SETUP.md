@@ -6,22 +6,51 @@ Complete setup from a fresh macOS or Linux machine to a running app.
 
 ## Prerequisites
 
-Install these before starting:
+### macOS
 
-| Software | Version | Install Command (macOS) |
-|----------|---------|------------------------|
-| **Node.js** | >= 20 | `brew install node` |
-| **pnpm** | >= 9 | `npm install -g pnpm` |
-| **Python** | >= 3.11 | `brew install python@3.12` |
-| **Docker Desktop** | Latest | [Download](https://www.docker.com/products/docker-desktop/) |
-| **Git** | Latest | `brew install git` |
+**1. Install Homebrew** (if not already installed):
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
 
-Verify installations:
+**2. Install required software:**
+```bash
+brew install node python@3.12 git
+npm install -g pnpm
+```
+
+**3. Install Docker Desktop:**
+Download from [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/) and install.
+
+### Linux (Ubuntu/Debian)
+
+```bash
+# Node.js 20
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# pnpm
+npm install -g pnpm
+
+# Python 3.12
+sudo apt install -y python3.12 python3.12-venv python3-pip
+
+# Docker
+sudo apt install -y docker.io docker-compose-v2
+sudo usermod -aG docker $USER   # then log out and back in
+
+# Git
+sudo apt install -y git
+```
+
+### Verify installations
+
 ```bash
 node --version    # v20.x or higher
 pnpm --version    # 9.x or higher
 python3 --version # 3.11 or higher
 docker --version  # Any recent version
+git --version
 ```
 
 ---
