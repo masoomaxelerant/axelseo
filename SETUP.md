@@ -382,6 +382,23 @@ The Celery worker isn't running. Start it:
 pnpm dev:worker
 ```
 
+### Switching between local and Neon (remote) database
+If you switch `DATABASE_URL` in `apps/api/.env` between local Docker and Neon, you must:
+1. Restart the API **and** the Celery worker (both cache the DB connection)
+2. Flush Redis to clear stale tasks from the old DB:
+   ```bash
+   redis-cli FLUSHALL
+   ```
+3. Run migrations on the new DB:
+   ```bash
+   cd apps/api && source .venv/bin/activate && alembic upgrade head
+   ```
+
+### "TimeoutError" when creating audits
+Your `DATABASE_URL` likely points to Neon (remote) which suspends after inactivity. Either:
+- Switch to local Docker Postgres: `DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/axelseo`
+- Or wake Neon by visiting the [Neon console](https://console.neon.tech) and waiting 10 seconds before retrying
+
 ---
 
 ## Optional Setup
