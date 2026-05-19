@@ -37,7 +37,7 @@ async def quick_audit(payload: QuickAuditRequest):
         config = CrawlConfig(
             start_url=url,
             max_pages=1,
-            max_depth=0,
+            max_depth=1,
             concurrency=1,
             requests_per_second=5.0,
             page_timeout_ms=15_000,
