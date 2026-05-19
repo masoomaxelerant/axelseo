@@ -114,3 +114,96 @@ async def quick_audit(payload: QuickAuditRequest):
     except Exception as e:
         logger.error("quick_audit.failed", url=url, error=str(e))
         raise HTTPException(status_code=500, detail=f"Audit failed: {str(e)}")
+
+
+class QuickPdfRequest(BaseModel):
+    url: str
+    scores: dict
+    issues_summary: dict
+    top_issues: list
+    cwv: dict
+
+
+@router.post("/quick-audit/pdf")
+async def quick_audit_pdf(payload: QuickPdfRequest):
+    """Generate a PDF from quick audit results — no auth, no DB."""
+    import subprocess, json, tempfile, os
+    from fastapi.responses import Response
+
+    def _cwv_rating(value: float, good: float, mid: float) -> str:
+        if value <= good: return "good"
+        if value <= mid: return "needs-improvement"
+        return "poor"
+
+    lcp = payload.cwv.get("lcp_ms") or 0
+    inp = payload.cwv.get("inp_ms") or 0
+    cls_val = payload.cwv.get("cls") or 0
+    domain = payload.url.split("//")[1].split("/")[0] if "//" in payload.url else payload.url
+
+    pdf_input = {
+        "audit": {
+            "id": "quick",
+            "url": payload.url,
+            "auditDate": __import__("datetime").datetime.now().isoformat(),
+            "pagesCrawled": 1,
+            "maxPages": 1,
+            "scores": {
+                "seo": payload.scores.get("seo", 0),
+                "performance": payload.scores.get("performance", 0),
+                "accessibility": payload.scores.get("accessibility", 0),
+                "bestPractices": payload.scores.get("best_practices", 0),
+            },
+            "coreWebVitals": {
+                "lcp": {"value": lcp, "rating": _cwv_rating(lcp, 2500, 4000)},
+                "inp": {"value": inp, "rating": _cwv_rating(inp, 200, 500)},
+                "cls": {"value": cls_val, "rating": _cwv_rating(cls_val, 0.1, 0.25)},
+            },
+            "issues": [
+                {
+                    "severity": "critical" if i.get("severity") in ("critical", "error") else i.get("severity", "info"),
+                    "category": i.get("category", ""),
+                    "message": i.get("message", "").split(" — ")[0],
+                    "howToFix": i.get("message", "").split(" — ")[1] if " — " in i.get("message", "") else "",
+                    "pagesAffected": 1,
+                }
+                for i in payload.top_issues
+            ],
+            "siteStructure": {"totalPages": 1, "maxDepth": 1, "brokenLinks": 0, "redirectChains": 0, "orphanPages": 0, "avgLoadTimeMs": 0},
+            "keywords": [],
+            "pages": [{"url": payload.url, "title": None, "statusCode": 200, "score": None, "loadTimeMs": 0, "issues": payload.issues_summary.get("total", 0)}],
+        },
+        "client": {"name": "Quick Audit", "domain": domain},
+        "consultant": {"name": "AxelSEO", "email": "seo@axelerant.com", "title": "SEO Audit Tool"},
+        "options": {"includeAppendix": False, "whitelabel": False},
+    }
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+        json.dump(pdf_input, f)
+        json_path = f.name
+
+    pdf_path = json_path.replace(".json", ".pdf")
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "..", ".."))
+    pdf_gen_dir = os.path.join(project_root, "packages", "pdf-generator")
+
+    try:
+        proc = subprocess.run(
+            ["npx", "ts-node", "src/cli.ts", json_path, "-o", pdf_path, "--no-appendix"],
+            cwd=pdf_gen_dir,
+            capture_output=True, text=True, timeout=120,
+        )
+        if proc.returncode != 0 or not os.path.exists(pdf_path):
+            logger.error("quick_pdf.failed", stderr=proc.stderr[:500])
+            raise HTTPException(status_code=500, detail="PDF generation failed")
+
+        with open(pdf_path, "rb") as f:
+            pdf_bytes = f.read()
+
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="axelseo-quick-{domain}.pdf"'},
+        )
+    finally:
+        for path in [json_path, pdf_path]:
+            if os.path.exists(path):
+                os.unlink(path)

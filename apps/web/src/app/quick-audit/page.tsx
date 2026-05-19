@@ -83,14 +83,19 @@ function QuickAuditContent() {
 
       <div className="max-w-4xl mx-auto px-6 py-12">
         {/* URL header */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10">
-            <Globe className="h-5 w-5 text-brand-orange" />
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10">
+              <Globe className="h-5 w-5 text-brand-orange" />
+            </div>
+            <div>
+              <h1 className="font-display text-xl font-bold">{url || "Quick Audit"}</h1>
+              <p className="text-xs text-gray-400">Free single-page SEO analysis</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-display text-xl font-bold">{url || "Quick Audit"}</h1>
-            <p className="text-xs text-gray-400">Free single-page SEO analysis</p>
-          </div>
+          {result && (
+            <DownloadPdfButton result={result} />
+          )}
         </div>
 
         {/* Loading */}
@@ -221,5 +226,48 @@ function MetricCard({ label, value, target, good }: { label: string; value: stri
       <p className="text-xs text-gray-500 mt-1">{label}</p>
       <p className="text-[10px] text-gray-600">Target: {target}</p>
     </div>
+  );
+}
+
+function DownloadPdfButton({ result }: { result: QuickResult }) {
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      const resp = await fetch(`${API_BASE}/api/v1/quick-audit/pdf`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(result),
+      });
+      if (!resp.ok) throw new Error("PDF generation failed");
+
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const filename = resp.headers.get("Content-Disposition")?.match(/filename="(.+)"/)?.[1] || "report.pdf";
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert("Failed to generate PDF. Please try again.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleDownload}
+      disabled={downloading}
+      className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 disabled:opacity-50"
+    >
+      {downloading ? (
+        <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Generating...</>
+      ) : (
+        <><Download className="h-3.5 w-3.5" /> Download PDF</>
+      )}
+    </button>
   );
 }
