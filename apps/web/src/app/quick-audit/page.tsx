@@ -2,38 +2,20 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import {
-  Loader2, Globe, AlertCircle, CheckCircle2, Download,
-  ArrowRight, Search, Shield, FileText, ExternalLink,
+  Loader2, Globe, AlertCircle, ArrowRight, Download, Search,
 } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 interface QuickResult {
   url: string;
-  scores: {
-    seo: number;
-    performance: number;
-    accessibility: number;
-    best_practices: number;
-  };
-  issues_summary: {
-    critical: number;
-    warning: number;
-    info: number;
-    total: number;
-  };
-  top_issues: Array<{
-    severity: string;
-    category: string;
-    message: string;
-  }>;
-  cwv: {
-    lcp_ms: number | null;
-    inp_ms: number | null;
-    cls: number | null;
-  };
+  scores: { seo: number; performance: number; accessibility: number; best_practices: number };
+  issues_summary: { critical: number; warning: number; info: number; total: number };
+  top_issues: Array<{ severity: string; category: string; message: string }>;
+  cwv: { lcp_ms: number | null; inp_ms: number | null; cls: number | null };
   pages_crawled: number;
 }
 
@@ -52,60 +34,51 @@ export default function QuickAuditPage() {
 function QuickAuditContent() {
   const searchParams = useSearchParams();
   const url = searchParams.get("url");
+  const { isSignedIn } = useAuth();
   const [result, setResult] = useState<QuickResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [progress, setProgress] = useState("Starting audit...");
 
   useEffect(() => {
-    if (!url) {
-      setError("No URL provided");
-      setLoading(false);
-      return;
-    }
-
+    if (!url) { setError("No URL provided"); setLoading(false); return; }
     let cancelled = false;
-
-    async function runAudit() {
+    (async () => {
       try {
-        setProgress("Analyzing page...");
-
         const resp = await fetch(`${API_BASE}/api/v1/quick-audit`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url }),
         });
-
         if (!resp.ok) {
           const body = await resp.json().catch(() => ({ detail: "Audit failed" }));
           throw new Error(body.detail || `HTTP ${resp.status}`);
         }
-
-        if (!cancelled) {
-          const data = await resp.json();
-          setResult(data);
-        }
+        if (!cancelled) setResult(await resp.json());
       } catch (e: any) {
         if (!cancelled) setError(e.message);
       } finally {
         if (!cancelled) setLoading(false);
       }
-    }
-
-    runAudit();
+    })();
     return () => { cancelled = true; };
   }, [url]);
 
   return (
     <main className="min-h-screen bg-brand-navy text-white">
-      {/* Nav */}
+      {/* Nav — changes based on auth */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
         <Link href="/" className="font-display text-xl font-bold">
           <span className="text-brand-orange">Axel</span>SEO
         </Link>
-        <Link href="/auth/sign-up" className="rounded-md bg-brand-orange px-5 py-2 text-sm font-semibold transition-colors hover:bg-orange-600">
-          Sign Up Free
-        </Link>
+        {isSignedIn ? (
+          <Link href="/dashboard" className="rounded-md bg-brand-orange px-5 py-2 text-sm font-semibold transition-colors hover:bg-orange-600">
+            Dashboard
+          </Link>
+        ) : (
+          <Link href="/auth/sign-up" className="rounded-md bg-brand-orange px-5 py-2 text-sm font-semibold transition-colors hover:bg-orange-600">
+            Sign Up Free
+          </Link>
+        )}
       </nav>
 
       <div className="max-w-4xl mx-auto px-6 py-12">
@@ -124,7 +97,7 @@ function QuickAuditContent() {
         {loading && (
           <div className="flex flex-col items-center py-20">
             <Loader2 className="h-10 w-10 text-brand-orange animate-spin mb-4" />
-            <p className="text-gray-300 font-medium">{progress}</p>
+            <p className="text-gray-300 font-medium">Analyzing page...</p>
             <p className="text-xs text-gray-500 mt-2">This usually takes 15-30 seconds</p>
           </div>
         )}
@@ -159,7 +132,7 @@ function QuickAuditContent() {
               </div>
             )}
 
-            {/* Issues summary */}
+            {/* Issues */}
             <div className="rounded-xl border border-white/10 bg-white/[0.02] p-6">
               <h3 className="font-display text-base font-semibold mb-4">Issues Found ({result.issues_summary.total})</h3>
               <div className="flex gap-4 mb-6">
@@ -185,22 +158,43 @@ function QuickAuditContent() {
               )}
             </div>
 
-            {/* CTA: Sign up to unlock more */}
-            <div className="rounded-xl border border-brand-orange/30 bg-brand-orange/5 p-8 text-center">
-              <h3 className="font-display text-xl font-bold mb-2">Want the full picture?</h3>
-              <p className="text-sm text-gray-400 mb-6">
-                Sign up free to crawl the entire site (up to 10,000 pages), get detailed fix guidance,
-                download branded PDF reports, and track scores over time.
-              </p>
-              <div className="flex items-center justify-center gap-4">
-                <Link href="/auth/sign-up" className="inline-flex items-center gap-2 rounded-lg bg-brand-orange px-6 py-3 font-semibold text-white transition-colors hover:bg-orange-600">
-                  Sign Up Free <ArrowRight className="h-4 w-4" />
-                </Link>
-                <Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors">
-                  Audit another URL
-                </Link>
+            {/* CTA — different for logged-in vs anonymous */}
+            {isSignedIn ? (
+              <div className="rounded-xl border border-brand-orange/30 bg-brand-orange/5 p-8 text-center">
+                <h3 className="font-display text-xl font-bold mb-2">Run a full site audit</h3>
+                <p className="text-sm text-gray-400 mb-6">
+                  Crawl the entire site (up to 10,000 pages), get detailed issue breakdowns,
+                  and download a branded PDF report.
+                </p>
+                <div className="flex items-center justify-center gap-4">
+                  <Link
+                    href={`/dashboard/audits/new?url=${encodeURIComponent(url || "")}`}
+                    className="inline-flex items-center gap-2 rounded-lg bg-brand-orange px-6 py-3 font-semibold text-white transition-colors hover:bg-orange-600"
+                  >
+                    Full Site Audit <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <Link href="/dashboard" className="text-sm text-gray-400 hover:text-white transition-colors">
+                    Go to Dashboard
+                  </Link>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="rounded-xl border border-brand-orange/30 bg-brand-orange/5 p-8 text-center">
+                <h3 className="font-display text-xl font-bold mb-2">Want the full picture?</h3>
+                <p className="text-sm text-gray-400 mb-6">
+                  Sign up free to crawl the entire site (up to 10,000 pages), get detailed fix guidance,
+                  download branded PDF reports, and track scores over time.
+                </p>
+                <div className="flex items-center justify-center gap-4">
+                  <Link href="/auth/sign-up" className="inline-flex items-center gap-2 rounded-lg bg-brand-orange px-6 py-3 font-semibold text-white transition-colors hover:bg-orange-600">
+                    Sign Up Free <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors">
+                    Audit another URL
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

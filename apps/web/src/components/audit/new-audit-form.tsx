@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Search, ChevronDown, FileText, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,8 +21,10 @@ const PAGE_OPTIONS = [
 ];
 
 export function NewAuditForm() {
-  const [url, setUrl] = useState("");
-  const [mode, setMode] = useState<AuditMode>("site");
+  const searchParams = useSearchParams();
+  const prefillUrl = searchParams.get("url") || "";
+  const [url, setUrl] = useState(prefillUrl);
+  const [mode, setMode] = useState<AuditMode>(prefillUrl ? "site" : "site");
   const [maxPages, setMaxPages] = useState(500);
   const [showOptions, setShowOptions] = useState(false);
   const router = useRouter();
