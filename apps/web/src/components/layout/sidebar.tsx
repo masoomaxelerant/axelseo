@@ -25,8 +25,8 @@ export function Sidebar() {
 
   return (
     <aside className="flex w-64 flex-col border-r bg-brand-navy" role="navigation" aria-label="Main navigation">
-      <div className="flex h-16 items-center px-6 border-b border-white/10">
-        <Link href="/dashboard" aria-label="Go to dashboard">
+      <div className="flex h-16 items-center justify-between px-6 border-b border-white/10">
+        <Link href="/" aria-label="Go to home page">
           <AxelerantLogo className="text-xl" />
         </Link>
       </div>
