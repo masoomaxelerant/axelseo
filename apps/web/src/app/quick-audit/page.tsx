@@ -7,6 +7,7 @@ import Link from "next/link";
 import {
   Loader2, Globe, AlertCircle, ArrowRight, Download, Search,
 } from "lucide-react";
+import { UserButton } from "@clerk/nextjs";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -80,9 +81,12 @@ function QuickAuditContent() {
           <span className="text-brand-orange">Axel</span>SEO
         </Link>
         {isSignedIn ? (
-          <Link href="/dashboard" className="rounded-md bg-brand-orange px-5 py-2 text-sm font-semibold transition-colors hover:bg-orange-600">
-            Dashboard
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard" className="rounded-md bg-brand-orange px-5 py-2 text-sm font-semibold transition-colors hover:bg-orange-600">
+              Dashboard
+            </Link>
+            <UserButton afterSignOutUrl="/" />
+          </div>
         ) : (
           <Link href="/auth/sign-up" className="rounded-md bg-brand-orange px-5 py-2 text-sm font-semibold transition-colors hover:bg-orange-600">
             Sign Up Free
