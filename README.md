@@ -57,19 +57,15 @@ See [`docs/architecture.md`](docs/architecture.md) for the full system architect
 | **Search Data** | Google Search Console API (OAuth, read-only) |
 | **Extension** | Plasmo framework (Manifest V3, Chrome + Firefox) |
 
-## Prerequisites
+## Local Development Setup
 
-- Node.js >= 20
-- Python >= 3.11
-- pnpm >= 9
-- Docker (for local Postgres + Redis)
-- [Clerk](https://clerk.com) account (free tier)
+For the complete step-by-step setup guide (prerequisites, installation, environment variables, troubleshooting), see **[SETUP.md](SETUP.md)**.
 
-## Quick Start
+### Quick Start
 
 ```bash
 # 1. Clone and install
-git clone <repo-url> axelseo && cd axelseo
+git clone git@github.com:masoomaxelerant/axelseo.git && cd axelseo
 pnpm install
 
 # 2. Start infrastructure
@@ -80,29 +76,26 @@ cd apps/api
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
+pip install -e ../../packages/crawler ../../packages/auditor
+python -m playwright install chromium
 
-# 4. Install crawler + auditor packages
-pip install -e ../../packages/crawler
-pip install -e "../../packages/crawler[dev]"
-pip install -e ../../packages/auditor
-pip install -e "../../packages/auditor[dev]"
-
-# 5. Configure environment
+# 4. Configure environment
+cp ../../.env.example .env                # Edit with your settings
 cp ../../.env.example ../web/.env.local   # Add your Clerk keys
-cp ../../.env.example .env                # Add Clerk keys + keep DB/Redis defaults
 
-# 6. Run database migrations
+# 5. Run database migrations
 alembic upgrade head
 
-# 7. Start services (3 terminals)
-pnpm dev              # Terminal 1 → Frontend at http://localhost:3000
-pnpm dev:api          # Terminal 2 → API at http://localhost:8000
-pnpm dev:worker       # Terminal 3 → Celery worker for async audits
+# 6. Start everything (from project root)
+cd ../..
+./start.sh
 ```
+
+> **`./start.sh` starts all 3 services** (API, worker, frontend) with one command. See [SETUP.md](SETUP.md) for the manual 3-terminal approach.
 
 ## Environment Variables
 
-Copy `.env.example` and fill in the required values:
+See [SETUP.md](SETUP.md) for the full list with descriptions. The minimum required:
 
 | Variable | Required | Where | Description |
 |----------|----------|-------|-------------|
