@@ -144,17 +144,21 @@ export function useAudit(auditId: string) {
         return MOCK_AUDIT_DETAIL;
       }
       const token = await getToken();
-      // Use /detail endpoint for completed audits (includes issues + site structure)
-      // Use /audits/{id} for in-progress audits (lighter payload)
-      try {
-        return await apiFetch<AuditDetail>(`/api/v1/audits/${auditId}/detail`, {
-          token: token || undefined,
-        });
-      } catch {
-        return apiFetch<AuditDetail>(`/api/v1/audits/${auditId}`, {
-          token: token || undefined,
-        });
+      // First fetch basic audit to check status
+      const audit = await apiFetch<AuditDetail>(`/api/v1/audits/${auditId}`, {
+        token: token || undefined,
+      });
+      // Only fetch full detail (issues, site structure) for completed audits
+      if (audit.status === "completed") {
+        try {
+          return await apiFetch<AuditDetail>(`/api/v1/audits/${auditId}/detail`, {
+            token: token || undefined,
+          });
+        } catch {
+          return audit;
+        }
       }
+      return audit;
     },
     refetchInterval: (query) => {
       const status = query.state.data?.status;
