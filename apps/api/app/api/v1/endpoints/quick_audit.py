@@ -1,12 +1,13 @@
 """Public quick audit endpoint — no auth required.
 
 Runs a single-page SEO check and returns results directly.
-Does NOT save to the database. Used for the homepage free audit.
+For logged-in users, optionally saves results to the database.
 """
 
 import asyncio
+from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from pydantic import BaseModel, HttpUrl
 
 from app.core.logging import get_logger
@@ -18,17 +19,36 @@ router = APIRouter()
 
 class QuickAuditRequest(BaseModel):
     url: HttpUrl
+    save: bool = False  # If true and user is authenticated, save to DB
+
+
+async def _get_optional_user_id(authorization: Optional[str] = Header(None)) -> Optional[str]:
+    """Try to extract user ID from auth header. Returns None if not authenticated."""
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    try:
+        from app.core.auth import verify_clerk_token
+        from fastapi.security import HTTPAuthorizationCredentials
+        creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=authorization.split(" ")[1])
+        claims = await verify_clerk_token(creds)
+        return claims.get("sub")
+    except Exception:
+        return None
 
 
 @router.post("/quick-audit")
-async def quick_audit(payload: QuickAuditRequest):
-    """Run a single-page SEO audit without authentication.
+async def quick_audit(
+    payload: QuickAuditRequest,
+    user_id: Optional[str] = Depends(_get_optional_user_id),
+):
+    """Run a single-page SEO audit — works without login.
 
-    Returns scores, top issues, and Core Web Vitals.
-    No data is saved — anonymous users get results but can't persist them.
+    If the user is authenticated and save=true, results are saved to DB
+    so they appear in the dashboard.
     """
     url = str(payload.url)
-    logger.info("quick_audit.starting", url=url)
+    is_authenticated = user_id is not None
+    logger.info("quick_audit.starting", url=url, authenticated=is_authenticated)
 
     try:
         # Run crawler on single page
@@ -95,6 +115,51 @@ async def quick_audit(payload: QuickAuditRequest):
 
         logger.info("quick_audit.complete", url=url, seo=scores["seo"], issues=len(issues))
 
+        # Save to DB for logged-in users
+        audit_id = None
+        if is_authenticated:
+            try:
+                from datetime import UTC, datetime
+                from app.core.database import async_session
+                from app.models.audit import Audit, PageIssue
+
+                async with async_session() as db:
+                    audit = Audit(
+                        url=url,
+                        status="completed",
+                        status_message=f"Quick audit — {len(issues)} issues found",
+                        pages_crawled=1,
+                        max_pages=1,
+                        score_performance=scores["performance"] or None,
+                        score_accessibility=scores["accessibility"] or None,
+                        score_best_practices=scores["best_practices"] or None,
+                        score_seo=scores["seo"],
+                        lcp_ms=cwv["lcp_ms"],
+                        inp_ms=cwv["inp_ms"],
+                        cls=cwv["cls"],
+                        completed_at=datetime.now(UTC),
+                    )
+                    db.add(audit)
+                    await db.commit()
+                    await db.refresh(audit)
+                    audit_id = str(audit.id)
+
+                    # Save issues
+                    severity_map = {"critical": "error", "warning": "warning", "info": "info"}
+                    for issue in issues[:50]:
+                        db.add(PageIssue(
+                            audit_id=audit.id,
+                            page_url=url,
+                            severity=severity_map.get(issue.severity.value, "info"),
+                            category=issue.category,
+                            message=f"{issue.message} — {issue.how_to_fix}",
+                        ))
+                    await db.commit()
+
+                logger.info("quick_audit.saved", audit_id=audit_id)
+            except Exception as e:
+                logger.warning("quick_audit.save_failed", error=str(e))
+
         return {
             "url": url,
             "scores": scores,
@@ -107,6 +172,8 @@ async def quick_audit(payload: QuickAuditRequest):
             "top_issues": top_issues,
             "cwv": cwv,
             "pages_crawled": 1,
+            "audit_id": audit_id,
+            "saved": audit_id is not None,
         }
 
     except HTTPException:

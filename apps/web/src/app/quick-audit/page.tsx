@@ -17,6 +17,8 @@ interface QuickResult {
   top_issues: Array<{ severity: string; category: string; message: string }>;
   cwv: { lcp_ms: number | null; inp_ms: number | null; cls: number | null };
   pages_crawled: number;
+  audit_id?: string | null;
+  saved?: boolean;
 }
 
 export default function QuickAuditPage() {
@@ -34,7 +36,7 @@ export default function QuickAuditPage() {
 function QuickAuditContent() {
   const searchParams = useSearchParams();
   const url = searchParams.get("url");
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, getToken } = useAuth();
   const [result, setResult] = useState<QuickResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,9 +46,16 @@ function QuickAuditContent() {
     let cancelled = false;
     (async () => {
       try {
+        // Pass auth token if logged in — backend will save results to DB
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (isSignedIn) {
+          const token = await getToken();
+          if (token) headers["Authorization"] = `Bearer ${token}`;
+        }
+
         const resp = await fetch(`${API_BASE}/api/v1/quick-audit`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({ url }),
         });
         if (!resp.ok) {
@@ -162,6 +171,16 @@ function QuickAuditContent() {
                 </div>
               )}
             </div>
+
+            {/* Saved audit notice */}
+            {result.saved && result.audit_id && (
+              <div className="rounded-xl border border-green-500/30 bg-green-500/5 p-4 flex items-center justify-between">
+                <p className="text-sm text-green-300">Audit saved to your dashboard</p>
+                <Link href={`/dashboard/audits/${result.audit_id}`} className="text-sm font-medium text-green-400 hover:text-green-300 transition-colors">
+                  View full details →
+                </Link>
+              </div>
+            )}
 
             {/* CTA — different for logged-in vs anonymous */}
             {isSignedIn ? (
