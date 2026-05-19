@@ -179,23 +179,25 @@ This creates all database tables (users, clients, audits, issues, etc.).
 
 ## Step 7: Start the Application
 
-### Option A: Single command (recommended)
-
 From the project root:
 ```bash
 cd ../..   # back to project root
-./start.sh
+pnpm start
 ```
 
-This starts everything at once:
+That's it. This single command starts everything:
 - PostgreSQL + Redis (Docker)
 - FastAPI API on `http://localhost:8000`
 - Celery worker for background jobs
 - Next.js frontend on `http://localhost:3000`
 
-Press `Ctrl+C` to stop all services.
+Press `Ctrl+C` to stop all services at once.
 
-### Option B: Manual (3 separate terminals)
+> You can also run `./start.sh` directly — `pnpm start` is just a shortcut for it.
+
+### Alternative: Manual start (3 separate terminals)
+
+If you prefer to run services individually (useful for debugging):
 
 **Terminal 1 — Frontend:**
 ```bash
