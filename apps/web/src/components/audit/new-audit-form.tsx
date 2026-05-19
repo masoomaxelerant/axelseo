@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Search, ChevronDown, FileText, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,26 @@ export function NewAuditForm() {
   const [showOptions, setShowOptions] = useState(false);
   const router = useRouter();
   const createAudit = useCreateAudit();
+  const autoStarted = useRef(false);
+
+  // Auto-start audit when URL is prefilled from query param
+  useEffect(() => {
+    if (prefillUrl && !autoStarted.current && !createAudit.isPending) {
+      autoStarted.current = true;
+      let normalizedUrl = prefillUrl.trim();
+      if (!normalizedUrl.startsWith("http")) {
+        normalizedUrl = `https://${normalizedUrl}`;
+      }
+      createAudit.mutate(
+        { url: normalizedUrl, max_pages: maxPages },
+        {
+          onSuccess: (audit) => {
+            router.push(`/dashboard/audits/${audit.id}`);
+          },
+        }
+      );
+    }
+  }, [prefillUrl]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
